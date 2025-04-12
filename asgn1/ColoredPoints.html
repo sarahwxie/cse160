@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Change a point color</title>
+  </head>
+
+  <body onload="main()">
+    <canvas id="webgl" width="400" height="400">
+      Please use a browser that supports "canvas"
+    </canvas>
+
+    <br />
+    <label for="red">Red</label>
+    <input type="range" id="red" name="red" min="0" max="10" class="slider" />
+    <label for="green">Green</label>
+    <input
+      type="range"
+      id="green"
+      name="green"
+      min="0"
+      max="10"
+      class="slider"
+    />
+    <label for="blue">Blue</label>
+    <input type="range" id="blue" name="blue" min="0" max="10" class="slider" />
+    <br />
+    <label for="size">Size</label>
+    <input type="range" id="size" name="size" min="5" max="40" class="slider" />
+    <br /><br />
+
+    <script src="./lib/webgl-utils.js"></script>
+    <script src="./lib/webgl-debug.js"></script>
+    <script src="./lib/cuon-utils.js"></script>
+    <script src="ColoredPoints.js"></script>
+  </body>
+</html>
