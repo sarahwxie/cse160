@@ -26,7 +26,7 @@ const FSHADER_SOURCE = `
 var canvas, gl, a_Position, u_FragColor, u_Size;
 
 // Globals related to UI elements
-var g_selectedColor = [0.5, 0.5, 0.5, 1.0];
+var g_selectedColor = [0.5, 0.5, 0.5, 0.5];
 var g_selectedSize = 10;
 var g_selectedType = POINT;
 var g_shapes = [];
@@ -85,6 +85,11 @@ function addActionsForHtmlUI() {
   document.getElementById("clearButton").onclick = function () {
     g_shapes = [];
     renderAllShapes();
+  };
+
+  document.getElementById("drawCat").onclick = function () {
+    g_shapes = [];
+    drawCat();
   };
 
   document.getElementById("point").onclick = function () {
@@ -198,4 +203,50 @@ function click(ev) {
 
   // Render all the shapes
   renderAllShapes(gl, a_Position, u_FragColor);
+}
+
+function drawCatHalf(isRightSide) {
+  var catOrange = [1.0, 0.5, 0.3, 1.0];
+  var sign = isRightSide ? 1 : -1;
+
+  // white space -- background
+  gl.uniform4f(u_FragColor, 1.0, 1.0, 1.0, 1.0);
+  drawTriangle([0, 0, 0, -0.2, 0.5 * sign, 0]);
+  drawTriangle([0, 0, 0.4 * sign, 0.4, 0.4 * sign, 0]);
+  drawTriangle([0, 0, 0.4 * sign, 0.4, 0, 0.4]);
+  drawTriangle([0.1 * sign, 0.4, 0.2 * sign, 0.4, 0.2 * sign, 0.5]);
+  drawTriangle([0.4 * sign, 0.2, 0.5 * sign, 0.2, 0.4 * sign, 0.1]);
+
+  // body
+  gl.uniform4f(
+    u_FragColor,
+    catOrange[0],
+    catOrange[1],
+    catOrange[2],
+    catOrange[3]
+  );
+  drawTriangle([0, -0.9, 0.4 * sign, -0.9, 0.0, -0.2]);
+
+  // head
+  drawTriangle([0, 0.5, 0, 0.3, 0.2 * sign, 0.5]);
+  drawTriangle([0.2 * sign, 0.5, 0.2 * sign, 0.4, 0.4 * sign, 0.4]);
+  drawTriangle([0.2 * sign, 0.5, 0.4 * sign, 0.7, 0.4 * sign, 0.4]);
+  drawTriangle([0.5 * sign, 0.2, 0.4 * sign, 0.2, 0.4 * sign, 0.4]);
+  drawTriangle([0.3 * sign, 0, 0.5 * sign, 0, 0.5 * sign, 0.2]);
+
+  // face details
+  gl.uniform4f(u_FragColor, 0.2, 0.2, 0.2, 1);
+  drawTriangle([0.1 * sign, 0.2, 0.2 * sign, 0.2, 0.2 * sign, 0.3]);
+  drawTriangle([0, 0, 0, -0.05, 0.05 * sign, 0]);
+
+  // whiskers
+  gl.uniform4f(u_FragColor, 1.0, 1.0, 1.0, 1.0);
+  drawTriangle([0.5 * sign, 0.05, 0.5 * sign, 0.1, 0.7 * sign, 0.1]);
+  drawTriangle([0.5 * sign, 0.1, 0.5 * sign, 0.15, 0.7 * sign, 0.15]);
+  drawTriangle([0.5 * sign, 0.15, 0.5 * sign, 0.2, 0.7 * sign, 0.2]);
+}
+
+function drawCat() {
+  drawCatHalf(true); // Draw the right side
+  drawCatHalf(false); // Draw the left side
 }
