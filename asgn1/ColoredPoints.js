@@ -1,5 +1,9 @@
 // ColoredPoint.js (c) 2012 matsuda
 // Vertex shader program
+
+const POINT = 0;
+const TRIANGLE = 1;
+
 const VSHADER_SOURCE = `
   attribute vec4 a_Position;
   uniform float u_Size;
@@ -23,7 +27,8 @@ var canvas, gl, a_Position, u_FragColor, u_Size;
 // Globals related to UI elements
 var g_selectedColor = [0.5, 0.5, 0.5, 1.0];
 var g_selectedSize = 10;
-var g_points = [];
+var g_selectedType = POINT;
+var g_shapes = [];
 
 function setupWebGL() {
   // Retrieve <canvas> element
@@ -72,8 +77,16 @@ function connectVariablesToGLSL() {
 function addActionsForHtmlUI() {
   //button events
   document.getElementById("clearButton").onclick = function () {
-    g_points = [];
+    g_shapes = [];
     renderAllShapes();
+  };
+
+  document.getElementById("point").onclick = function () {
+    g_selectedType = POINT;
+  };
+
+  document.getElementById("triangle").onclick = function () {
+    g_selectedType = TRIANGLE;
   };
 
   // Color sliders
@@ -122,13 +135,13 @@ function renderAllShapes() {
   // Clear <canvas>
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  var len = g_points.length;
+  var len = g_shapes.length;
   for (var i = 0; i < len; i++) {
-    g_points[i].render();
+    g_shapes[i].render();
   }
 }
 
-function handleMouseClick(ev) {
+function convertCoordinatesEventToGL(ev) {
   var x = ev.clientX; // x coordinate of a mouse pointer
   var y = ev.clientY; // y coordinate of a mouse pointer
   var rect = ev.target.getBoundingClientRect();
@@ -137,20 +150,25 @@ function handleMouseClick(ev) {
   x = (x - rect.left - canvas.width / 2) / (canvas.width / 2);
   y = (canvas.height / 2 - (y - rect.top)) / (canvas.height / 2);
 
-  // Print coordinate in console
-  // console.log("("+x+","+y+")");
-
-  const point = new Point([x, y, 0.0], g_selectedColor.slice(), g_selectedSize);
-
-  return point;
+  return [x, y];
 }
 
 function click(ev) {
+  var [x, y] = convertCoordinatesEventToGL(ev);
   // Handle the mouse click and get the position and color
-  const point = handleMouseClick(ev, canvas);
+  var point;
+  if (g_selectedType == POINT) {
+    point = new Point();
+  } else if (g_selectedType == TRIANGLE) {
+    point = new Triangle();
+  }
+
+  point.position = [x, y];
+  point.color = g_selectedColor.slice();
+  point.size = g_selectedSize;
 
   // Store the coordinates and color in the global arrays
-  g_points.push(point);
+  g_shapes.push(point);
 
   // Render all the shapes
   renderAllShapes(gl, a_Position, u_FragColor);
