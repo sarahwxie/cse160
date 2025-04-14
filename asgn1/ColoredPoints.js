@@ -3,6 +3,7 @@
 
 const POINT = 0;
 const TRIANGLE = 1;
+const CIRCLE = 2;
 
 const VSHADER_SOURCE = `
   attribute vec4 a_Position;
@@ -29,6 +30,7 @@ var g_selectedColor = [0.5, 0.5, 0.5, 1.0];
 var g_selectedSize = 10;
 var g_selectedType = POINT;
 var g_shapes = [];
+var g_circleSegments = 10;
 
 function setupWebGL() {
   // Retrieve <canvas> element
@@ -89,6 +91,10 @@ function addActionsForHtmlUI() {
     g_selectedType = TRIANGLE;
   };
 
+  document.getElementById("circle").onclick = function () {
+    g_selectedType = CIRCLE;
+  };
+
   // Color sliders
   document.getElementById("red").addEventListener("mouseup", function () {
     g_selectedColor[0] = this.value * 0.1;
@@ -104,6 +110,11 @@ function addActionsForHtmlUI() {
   document.getElementById("size").addEventListener("mouseup", function () {
     g_selectedSize = this.value;
   });
+  document
+    .getElementById("circleSlider")
+    .addEventListener("mouseup", function () {
+      g_circleSegments = this.value;
+    });
 }
 
 function main() {
@@ -160,7 +171,11 @@ function click(ev) {
   if (g_selectedType == POINT) {
     point = new Point();
   } else if (g_selectedType == TRIANGLE) {
+    console.log("tri selected");
     point = new Triangle();
+  } else if (g_selectedType == CIRCLE) {
+    point = new Circle();
+    point.segments = g_circleSegments;
   }
 
   point.position = [x, y];
