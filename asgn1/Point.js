@@ -8,7 +8,7 @@ class Point {
     this.position = position;
     this.color = color;
     this.size = size;
-    this.outline = 0;
+    this.opacity = 50;
   }
 
   render() {

@@ -5,7 +5,7 @@ class Circle {
     this.color = [1.0, 1.0, 1.0, 1.0];
     this.size = 5.0;
     this.segments = 10;
-    this.outline = 0;
+    this.opacity = 50;
   }
 
   render() {
@@ -21,7 +21,7 @@ class Circle {
     var angleStep = 360 / this.segments;
 
     // creating the vertices for circle
-    for (var angle = 0; angle <= 360; angle += angleStep) {
+    for (var angle = 0; angle < 360; angle += angleStep) {
       let centerPt = [xy[0], xy[1]];
       let angle1 = angle;
       let angle2 = angle + angleStep;
@@ -36,15 +36,12 @@ class Circle {
       let pt1 = [centerPt[0] + vec1[0], centerPt[1] + vec1[1]];
       let pt2 = [centerPt[0] + vec2[0], centerPt[1] + vec2[1]];
 
-      drawTriangle(
-        [xy[0], xy[1], pt1[0], pt1[1], pt2[0], pt2[1]],
-        this.outline
-      );
+      drawTriangle([xy[0], xy[1], pt1[0], pt1[1], pt2[0], pt2[1]]);
     }
   }
 }
 
-function drawCircle(x, y, outline, sCount, size) {
+function drawCircle(x, y, sCount, size) {
   var theta = Math.PI / sCount;
   var count = 0; // add to array
   var n = 0; // The number of vertices
@@ -77,9 +74,5 @@ function drawCircle(x, y, outline, sCount, size) {
   // Enable the assignment to a_Position variable
   gl.enableVertexAttribArray(a_Position);
 
-  if (outline == 1) {
-    gl.drawArrays(gl.LINE_LOOP, 0, n);
-  } else if (outline == 0) {
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, n);
-  }
+  gl.drawArrays(gl.TRIANGLE_FAN, 0, n);
 }

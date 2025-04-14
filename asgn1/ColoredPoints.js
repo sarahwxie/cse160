@@ -43,6 +43,10 @@ function setupWebGL() {
     console.log("Failed to get the rendering context for WebGL");
     return;
   }
+
+  // Enable blending for transparency
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 }
 
 function connectVariablesToGLSL() {
@@ -106,15 +110,22 @@ function addActionsForHtmlUI() {
     g_selectedColor[2] = this.value * 0.1;
   });
 
-  // size sliders
+  // size slider
   document.getElementById("size").addEventListener("mouseup", function () {
     g_selectedSize = this.value;
   });
+
+  // circle segments slider
   document
     .getElementById("circleSlider")
     .addEventListener("mouseup", function () {
       g_circleSegments = this.value;
     });
+
+  // opacity slider
+  document.getElementById("opacity").addEventListener("mouseup", function () {
+    g_selectedColor[3] = this.value * 0.01;
+  });
 }
 
 function main() {
