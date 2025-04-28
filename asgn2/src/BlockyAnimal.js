@@ -31,9 +31,17 @@ var canvas, gl, a_Position, u_FragColor, u_ModelMatrix, u_GlobalRotateMatrix;
 // Globals related to UI elements
 var g_selectedColor = [0.5, 0.5, 0.5, 0.5];
 var g_globalAngle = 10;
+var g_yellowAngle = 0;
+var g_magAngle = 0;
 var g_selectedType = POINT;
 var g_shapes = [];
 var g_circleSegments = 10;
+var g_yellowAnimation = false;
+var g_magentaAnimation = false;
+
+// Animation stuff
+var g_startTime = performance.now() / 1000.0;
+var g_seconds = performance.now() / 1000.0 - g_startTime;
 
 function setupWebGL() {
   // Retrieve <canvas> element
@@ -96,34 +104,23 @@ function connectVariablesToGLSL() {
 }
 
 function addActionsForHtmlUI() {
-  //button events
-  document.getElementById("clearButton").onclick = function () {
-    g_shapes = [];
-    renderScene();
+  // button events
+  document.getElementById("aniOff").onclick = function () {
+    g_yellowAnimation = false;
+    console.log("aniOff");
+  };
+  document.getElementById("aniOn").onclick = function () {
+    g_yellowAnimation = true;
+    console.log("aniOn");
   };
 
-  document.getElementById("point").onclick = function () {
-    g_selectedType = POINT;
+  // button events
+  document.getElementById("magAniOff").onclick = function () {
+    g_magentaAnimation = false;
   };
-
-  document.getElementById("triangle").onclick = function () {
-    g_selectedType = TRIANGLE;
+  document.getElementById("magAniOn").onclick = function () {
+    g_magentaAnimation = true;
   };
-
-  document.getElementById("circle").onclick = function () {
-    g_selectedType = CIRCLE;
-  };
-
-  // Color sliders
-  document.getElementById("red").addEventListener("mouseup", function () {
-    g_selectedColor[0] = this.value * 0.1;
-  });
-  document.getElementById("green").addEventListener("mouseup", function () {
-    g_selectedColor[1] = this.value * 0.1;
-  });
-  document.getElementById("blue").addEventListener("mouseup", function () {
-    g_selectedColor[2] = this.value * 0.1;
-  });
 
   // size slider
   document
@@ -133,17 +130,19 @@ function addActionsForHtmlUI() {
       renderScene();
     });
 
-  // circle segments slider
   document
-    .getElementById("circleSlider")
-    .addEventListener("mouseup", function () {
-      g_circleSegments = this.value;
+    .getElementById("yellowAngle")
+    .addEventListener("mousemove", function () {
+      g_yellowAngle = this.value;
+      renderScene();
     });
 
-  // opacity slider
-  document.getElementById("opacity").addEventListener("mouseup", function () {
-    g_selectedColor[3] = this.value * 0.01;
-  });
+  document
+    .getElementById("magAngle")
+    .addEventListener("mousemove", function () {
+      g_magAngle = this.value;
+      renderScene();
+    });
 }
 
 function main() {
@@ -168,7 +167,25 @@ function main() {
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
   // Clear <canvas>
+  // renderScene();
+
+  requestAnimationFrame(tick);
+}
+
+function tick() {
+  g_seconds = performance.now() / 1000.0 - g_startTime;
+  updateAnimationAngles();
   renderScene();
+  requestAnimationFrame(tick);
+}
+
+function updateAnimationAngles() {
+  if (g_yellowAnimation) {
+    g_yellowAngle = 45 * Math.sin(g_seconds);
+  }
+  if (g_magentaAnimation) {
+    g_magAngle = 45 * Math.sin(g_seconds);
+  }
 }
 
 function renderScene() {
@@ -178,20 +195,34 @@ function renderScene() {
   // Clear <canvas>
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  // draw the body cube
+  // Draw the body cube
   var body = new Cube();
   body.color = [1.0, 0.0, 0.0, 1.0];
-  body.matrix.translate(-0.25, -0.5, 0);
-  body.matrix.scale(0.5, 1, 0.5);
+  body.matrix.translate(-0.25, -0.75, 0.0);
+  body.matrix.rotate(-5, 1, 0, 0);
+  body.matrix.scale(0.5, 0.3, 0.5);
   body.render();
 
-  // draw the body cube
+  // Draw a left arm
   var leftArm = new Cube();
-  leftArm.color = [1.0, 1.0, 0.0, 1.0];
-  leftArm.matrix.translate(0.7, -0, 0);
-  leftArm.matrix.rotate(45, 0, 0, 1);
+  leftArm.color = [1, 1, 0, 1];
+  leftArm.matrix.setTranslate(0, -0.5, 0.0);
+  leftArm.matrix.rotate(-5, 1, 0, 0);
+  leftArm.matrix.rotate(-g_yellowAngle, 0, 0, 1);
+  var yellowCoordinatesMat = new Matrix4(leftArm.matrix);
   leftArm.matrix.scale(0.25, 0.7, 0.5);
+  leftArm.matrix.translate(-0.5, 0, 0.0);
   leftArm.render();
+
+  // Test box
+  var box = new Cube();
+  box.color = [1, 0, 1, 1];
+  box.matrix = yellowCoordinatesMat;
+  box.matrix.translate(0, 0.65, 0.0);
+  box.matrix.rotate(-g_magAngle, 0, 0.0, 1.0);
+  box.matrix.scale(0.3, 0.3, 0.3);
+  box.matrix.translate(-0.5, 0, -0.001);
+  box.render();
 }
 
 function convertCoordinatesEventToGL(ev) {
