@@ -349,30 +349,13 @@ function updateAnimationAngles() {
 
 // Render all objects in the scene
 function renderScene() {
-  // Set up View Matrix (basic camera positioned back)
-  const viewMatrix = new Matrix4();
-  viewMatrix.setLookAt(
-    0,
-    0,
-    3, // Camera position (x,y,z)
-    0,
-    0,
-    0, // Look at origin
-    0,
-    1,
-    0 // Up direction
-  );
-  gl.uniformMatrix4fv(u_ViewMatrix, false, viewMatrix.elements);
+  // Pass the projection matrix
+  var projMat = new Matrix4();
+  gl.uniformMatrix4fv(u_ProjectionMatrix, false, projMat.elements);
 
-  // Set up Projection Matrix (perspective projection)
-  const projMatrix = new Matrix4();
-  projMatrix.setPerspective(
-    60, // field of view (degrees)
-    canvas.width / canvas.height, // aspect ratio
-    0.1, // near plane
-    100 // far plane
-  );
-  gl.uniformMatrix4fv(u_ProjectionMatrix, false, projMatrix.elements);
+  // Pass the view matrix
+  var viewMat = new Matrix4();
+  gl.uniformMatrix4fv(u_ViewMatrix, false, viewMat.elements);
 
   // ------------------
   const globalRotMatrix = new Matrix4()
