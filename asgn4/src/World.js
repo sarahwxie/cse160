@@ -8,7 +8,9 @@ var VSHADER_SOURCE = `
     precision mediump float;
     attribute vec4 a_Position;
     attribute vec2 a_UV;
+    attribute vec3 a_Normal;
     varying vec2 v_UV;
+    varying vec3 v_Normal;
     uniform mat4 u_ModelMatrix;
     uniform mat4 u_GlobalRotateMatrix;
     uniform mat4 u_ViewMatrix;
@@ -16,6 +18,8 @@ var VSHADER_SOURCE = `
     void main() {
       gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
       v_UV = a_UV;
+      v_Normal = a_Normal;
+
     }
 `;
 
@@ -23,11 +27,15 @@ var VSHADER_SOURCE = `
 const FSHADER_SOURCE = `
     precision mediump float;
     varying vec2 v_UV;
+    varying vec3 v_Normal;
     uniform vec4 u_FragColor;
     uniform sampler2D u_Sampler0;
     uniform int u_whichTexture;
     void main() {
-      if (u_whichTexture == -2) {
+      if (u_whichTexture == -3) {
+        gl_FragColor = vec4((v_Normal+1.0)/2.0, 1.0); // Use normal
+      }
+      else if (u_whichTexture == -2) {
         gl_FragColor = u_FragColor; // Use color
       } else if (u_whichTexture == -1) {
         gl_FragColor = vec4(v_UV, 1.0, 1.0); // Use UV debug color
@@ -46,6 +54,7 @@ let canvas,
   gl,
   a_Position,
   a_UV,
+  a_Normal,
   u_FragColor,
   u_ModelMatrix,
   u_ProjectionMatrix,
@@ -110,6 +119,7 @@ function connectVariablesToGLSL() {
 
   a_Position = gl.getAttribLocation(gl.program, "a_Position");
   a_UV = gl.getAttribLocation(gl.program, "a_UV");
+  a_Normal = gl.getAttribLocation(gl.program, "a_Normal");
   u_FragColor = gl.getUniformLocation(gl.program, "u_FragColor");
   u_ModelMatrix = gl.getUniformLocation(gl.program, "u_ModelMatrix");
   u_GlobalRotateMatrix = gl.getUniformLocation(
@@ -135,7 +145,8 @@ function connectVariablesToGLSL() {
 
   if (
     a_Position < 0 ||
-    a_UV < 0 || // check a_UV too
+    a_UV < 0 ||
+    a_Normal < 0 ||
     !u_FragColor ||
     !u_ModelMatrix ||
     !u_GlobalRotateMatrix ||
