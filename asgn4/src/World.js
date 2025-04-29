@@ -468,4 +468,12 @@ function renderScene() {
   tongue.matrix.translate(0.35, 0.2, 0);
   tongue.matrix.scale(0.2, 0.2, g_toungueLen);
   tongue.render();
+
+  // Draw the sphere in the middle of the screen
+  const sphere = new Sphere();
+  sphere.color = [0.5, 0.5, 1.0, 1.0]; // Light blue color
+  if (g_normalOn) sphere.textureNum = -3; // Use normals
+  sphere.matrix.translate(0, 0, 0); // Center of the screen
+  sphere.matrix.scale(0.5, 0.5, 0.5); // Adjust size
+  sphere.render();
 }
