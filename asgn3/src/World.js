@@ -109,10 +109,10 @@ function connectVariablesToGLSL() {
 
   if (
     a_Position < 0 ||
+    a_UV < 0 || // check a_UV too
     !u_FragColor ||
     !u_ModelMatrix ||
     !u_GlobalRotateMatrix ||
-    a_UV < 0 ||
     !u_ViewMatrix ||
     !u_ProjectionMatrix
   ) {
@@ -287,6 +287,32 @@ function updateAnimationAngles() {
 
 // Render all objects in the scene
 function renderScene() {
+  // Set up View Matrix (basic camera positioned back)
+  const viewMatrix = new Matrix4();
+  viewMatrix.setLookAt(
+    0,
+    0,
+    3, // Camera position (x,y,z)
+    0,
+    0,
+    0, // Look at origin
+    0,
+    1,
+    0 // Up direction
+  );
+  gl.uniformMatrix4fv(u_ViewMatrix, false, viewMatrix.elements);
+
+  // Set up Projection Matrix (perspective projection)
+  const projMatrix = new Matrix4();
+  projMatrix.setPerspective(
+    60, // field of view (degrees)
+    canvas.width / canvas.height, // aspect ratio
+    0.1, // near plane
+    100 // far plane
+  );
+  gl.uniformMatrix4fv(u_ProjectionMatrix, false, projMatrix.elements);
+
+  // ------------------
   const globalRotMatrix = new Matrix4()
     .rotate(g_yRotation, 0, 1, 0) // Rotate around y-axis
     .rotate(g_xRotation, 1, 0, 0); // Rotate around x-axis
