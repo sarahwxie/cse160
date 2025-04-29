@@ -81,9 +81,7 @@ let g_startTime = performance.now() / 1000.0;
 let g_seconds = performance.now() / 1000.0 - g_startTime;
 
 // view
-var g_eye = [0, 0, 3];
-var g_at = [0, 0, -100];
-var g_up = [0, 1, 0];
+let camera;
 
 // Set up WebGL context and enable transparency
 function setupWebGL() {
@@ -307,6 +305,7 @@ function main() {
   connectVariablesToGLSL();
   addActionsForHtmlUI();
   // addMouseControl();
+  camera = new Camera();
 
   document.onkeydown = keydown;
 
@@ -335,14 +334,24 @@ function updateAnimationAngles() {
 }
 
 function keydown(ev) {
-  if (ev.keyCode == 39) {
-    g_eye[0] += 0.2; // Right arrow key
-  } else if (ev.keyCode == 37) {
-    g_eye[0] -= 0.2; // Left arrow key
+  switch (ev.key) {
+    case "w": // Move forward
+      camera.forward();
+      break;
+    case "s": // Move backward
+      camera.back();
+      break;
+    case "a": // Move left
+      camera.left();
+      break;
+    case "d": // Move right
+      camera.right();
+      break;
+    default:
+      console.log(`Unhandled key: ${ev.key}`);
+      return; // Exit if the key is not handled
   }
-
   renderScene();
-  console.log(ev.keyCode);
 }
 
 // Render all objects in the scene
@@ -355,15 +364,15 @@ function renderScene() {
   // Pass the view matrix
   var viewMat = new Matrix4();
   viewMat.setLookAt(
-    g_eye[0],
-    g_eye[1],
-    g_eye[2],
-    g_at[0],
-    g_at[1],
-    g_at[2],
-    g_up[0],
-    g_up[1],
-    g_up[2]
+    camera.eye.elements[0],
+    camera.eye.elements[1],
+    camera.eye.elements[2],
+    camera.at.elements[0],
+    camera.at.elements[1],
+    camera.at.elements[2],
+    camera.up.elements[0],
+    camera.up.elements[1],
+    camera.up.elements[2]
   );
   gl.uniformMatrix4fv(u_ViewMatrix, false, viewMat.elements);
 
@@ -374,6 +383,15 @@ function renderScene() {
   gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, globalRotMatrix.elements);
 
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  // Draw the floor
+  var floor = new Cube();
+  floor.color = [1, 0, 0, 0.0, 1.0];
+  floor.textureNum = 0;
+  floor.matrix.translate(0, -0.75, 0.0);
+  floor.matrix.scale(10, 0.01, 10);
+  floor.matrix.translate(-0.5, 0, -0.5);
+  floor.render();
 
   // Snake Base
   const body = new Cube();
