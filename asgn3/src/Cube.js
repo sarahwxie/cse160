@@ -3,10 +3,13 @@ class Cube {
     this.type = "cube";
     this.color = [1.0, 1.0, 1.0, 1.0];
     this.matrix = new Matrix4();
+    this.textureNum = -2;
   }
 
   render() {
     var rgba = this.color;
+
+    gl.uniform1i(u_whichTexture, this.textureNum);
 
     // Apply the transformation matrix to the cube
     gl.uniformMatrix4fv(u_ModelMatrix, false, this.matrix.elements);
