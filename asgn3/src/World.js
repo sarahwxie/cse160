@@ -358,11 +358,37 @@ function keydown(ev) {
   renderScene();
 }
 
+var g_map = [
+  [1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 1, 0, 1],
+  [1, 0, 0, 0, 0, 1, 1, 1],
+];
+
+function drawMap() {
+  for (x = 0; x < 32; x++) {
+    for (y = 0; y < 32; y++) {
+      // console.log(x, y);
+      if (x == 0 || x == 31 || y == 0 || y == 31) {
+        var body = new Cube();
+        body.color = [0.8, 1.0, 0.1, 1.0];
+        body.matrix.translate(0, -0.75, 0);
+        body.matrix.scale(0.3, 0.3, 0.3);
+        body.matrix.translate(x - 16, 0, y - 16);
+        body.render();
+      }
+    }
+  }
+}
 // Render all objects in the scene
 function renderScene() {
   // Pass the projection matrix
   var projMat = new Matrix4();
-  projMat.setPerspective(60, canvas.width / canvas.height, 0.1, 10);
+  projMat.setPerspective(60, canvas.width / canvas.height, 0.1, 100);
   gl.uniformMatrix4fv(u_ProjectionMatrix, false, projMat.elements);
 
   // Pass the view matrix
@@ -396,6 +422,14 @@ function renderScene() {
   floor.matrix.scale(10, 0.01, 10);
   floor.matrix.translate(-0.5, 0, -0.5);
   floor.render();
+
+  // Draw the sky
+  var sky = new Cube();
+  sky.color = [135 / 255, 206 / 255, 235 / 255, 1];
+  sky.textureNum = -2;
+  sky.matrix.scale(50, 50, 50);
+  sky.matrix.translate(-0.5, -0.5, -0.5); // Center the box
+  sky.render();
 
   // Snake Base
   const body = new Cube();
@@ -436,4 +470,7 @@ function renderScene() {
   tongue.matrix.translate(0.35, 0.2, 0);
   tongue.matrix.scale(0.2, 0.2, g_toungueLen);
   tongue.render();
+
+  // draw the map
+  drawMap();
 }
