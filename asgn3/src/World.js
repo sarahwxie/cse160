@@ -379,7 +379,7 @@ function drawMap() {
         body.matrix.translate(0, -0.75, 0);
         body.matrix.scale(0.3, 0.3, 0.3);
         body.matrix.translate(x - 16, 0, y - 16);
-        body.render();
+        body.renderFast();
       }
     }
   }
@@ -421,7 +421,7 @@ function renderScene() {
   floor.matrix.translate(0, -0.75, 0.0);
   floor.matrix.scale(10, 0.01, 10);
   floor.matrix.translate(-0.5, 0, -0.5);
-  floor.render();
+  floor.renderFast();
 
   // Draw the sky
   var sky = new Cube();
@@ -429,7 +429,7 @@ function renderScene() {
   sky.textureNum = -2;
   sky.matrix.scale(50, 50, 50);
   sky.matrix.translate(-0.5, -0.5, -0.5); // Center the box
-  sky.render();
+  sky.renderFast();
 
   // Snake Base
   const body = new Cube();
@@ -438,7 +438,7 @@ function renderScene() {
   body.matrix.translate(-0.1, -0.75 + g_snakeJump, 0.0);
   body.matrix.rotate(-5, 1, 0, 0);
   body.matrix.scale(1.5, 0.3, 0.3);
-  body.render();
+  body.renderFast();
 
   // snake body
   const leftArm = new Cube();
@@ -449,7 +449,7 @@ function renderScene() {
   const yellowCoordinatesMat = new Matrix4(leftArm.matrix);
   leftArm.matrix.scale(0.25, 0.7, 0.25);
   leftArm.matrix.translate(-0.5, 0, 0.0);
-  leftArm.render();
+  leftArm.renderFast();
 
   // snake head
   const box = new Cube();
@@ -460,7 +460,7 @@ function renderScene() {
   box.matrix.scale(0.3, 0.3, 0.3);
   box.matrix.translate(-0.5, 0, -0.001);
   const headCoordinatesMat = new Matrix4(box.matrix); // Save head matrix for tongue
-  box.render();
+  box.renderFast();
 
   // Snake tongue
   const tongue = new Pyramid();

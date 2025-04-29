@@ -26,8 +26,11 @@ class Triangle {
   }
 }
 
+var g_vertexBuffer = null;
+var g_uvBuffer = null;
+
 function drawTriangle3D(vertices) {
-  var n = 3;
+  var n = vertices.length / 3;
   var vertexBuffer = gl.createBuffer();
   if (!vertexBuffer) {
     console.log("Failed to create the buffer object");
@@ -47,10 +50,12 @@ function drawTriangle3D(vertices) {
   gl.enableVertexAttribArray(a_Position);
 
   gl.drawArrays(gl.TRIANGLES, 0, n);
+
+  g_vertexBuffer = null;
 }
 
 function drawTriangle3DUV(vertices, uv) {
-  var n = 3;
+  var n = vertices.length / 3;
 
   // -----------------------------------------------------------------
 
