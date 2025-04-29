@@ -308,6 +308,8 @@ function main() {
   addActionsForHtmlUI();
   // addMouseControl();
 
+  document.onkeydown = keydown;
+
   initTextures(gl, 0);
   gl.clearColor(1, 1, 1, 1.0);
 
@@ -330,6 +332,17 @@ function updateAnimationAngles() {
   if (g_magentaAnimation) g_magAngle = 15 * Math.sin(g_seconds);
   if (g_toungueAnimation)
     g_toungueLen = 0.65 + 0.35 * Math.sin(g_seconds * 1.5);
+}
+
+function keydown(ev) {
+  if (ev.keyCode == 39) {
+    g_eye[0] += 0.2; // Right arrow key
+  } else if (ev.keyCode == 37) {
+    g_eye[0] -= 0.2; // Left arrow key
+  }
+
+  renderScene();
+  console.log(ev.keyCode);
 }
 
 // Render all objects in the scene
