@@ -49,6 +49,22 @@
         white-space: nowrap;
       }
     </style>
+
+    <script>
+      (function () {
+        var script = document.createElement("script");
+        script.onload = function () {
+          var stats = new Stats();
+          document.body.appendChild(stats.dom);
+          requestAnimationFrame(function loop() {
+            stats.update();
+            requestAnimationFrame(loop);
+          });
+        };
+        script.src = "https://mrdoob.github.io/stats.js/build/stats.min.js";
+        document.head.appendChild(script);
+      })();
+    </script>
   </head>
 
   <body onload="main()">
@@ -62,12 +78,26 @@
     <div class="d-flex flex-column align-items-center w-50">
       <div class="slider-container">
         <label for="angleSlide" class="form-label slider-label"
-          >Camera Angle</label
+          >Camera Angle (x)</label
         >
         <input
           type="range"
           id="angleSlide"
           name="angleSlide"
+          min="-180"
+          max="180"
+          class="form-range slider"
+        />
+      </div>
+
+      <div class="slider-container">
+        <label for="angleSlideY" class="form-label slider-label"
+          >Camera Angle (y)</label
+        >
+        <input
+          type="range"
+          id="angleSlideY"
+          name="angleSlideY"
           min="-180"
           max="180"
           class="form-range slider"
@@ -114,8 +144,9 @@
           type="range"
           id="tLen"
           name="tLen"
-          min="0"
-          max="10"
+          min="0.7"
+          max="1.2"
+          step="0.01"
           class="form-range slider"
         />
         <button type="button" id="tOn" class="btn">On</button>
@@ -129,9 +160,10 @@
     <script src="../lib/webgl-debug.js"></script>
     <script src="../lib/cuon-utils.js"></script>
     <script src="../lib/cuon-matrix.js"></script>
+    <script src="../lib/stats-min.js"></script>
     <script src="Triangle.js"></script>
     <script src="Cube.js"></script>
-    <script src="TrianglePrism.js"></script>
+    <script src="Pyramid.js"></script>
     <script src="BlockyAnimal.js"></script>
   </body>
 </html>
