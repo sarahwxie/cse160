@@ -26,6 +26,7 @@ const FSHADER_SOURCE = `
     uniform vec4 u_FragColor;
     uniform sampler2D u_Sampler0;
     uniform int u_whichTexture;
+    void main() {
       if (u_whichTexture == -2) {
         gl_FragColor = u_FragColor; // Use color
       } else if (u_whichTexture == -1) {
@@ -384,6 +385,7 @@ function renderScene() {
   // Snake Base
   const body = new Cube();
   body.color = SNAKE_COLOR;
+  body.textureNum = 0;
   body.matrix.translate(-0.1, -0.75 + g_snakeJump, 0.0);
   body.matrix.rotate(-5, 1, 0, 0);
   body.matrix.scale(1.5, 0.3, 0.3);
