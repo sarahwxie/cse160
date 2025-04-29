@@ -191,6 +191,10 @@ function addMouseControl() {
       g_yRotation += deltaX * 0.5;
       g_xRotation += deltaY * 0.5;
 
+      // Normalize rotation values to stay within 0-360 degrees
+      g_yRotation = g_yRotation % 360;
+      g_xRotation = Math.max(-90, Math.min(90, g_xRotation));
+
       lastMouseX = event.clientX;
       lastMouseY = event.clientY;
 
