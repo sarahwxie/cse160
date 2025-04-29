@@ -5,61 +5,75 @@
 
 // Vertex shader program
 var VSHADER_SOURCE = `
-    precision mediump float;
-    attribute vec4 a_Position;
-    attribute vec2 a_UV;
-    attribute vec3 a_Normal;
-    varying vec2 v_UV;
-    varying vec3 v_Normal;
-    varying vec4 v_VertPos;
-    uniform mat4 u_ModelMatrix;
-    uniform mat4 u_GlobalRotateMatrix;
-    uniform mat4 u_ViewMatrix;
-    uniform mat4 u_ProjectionMatrix;
-    uniform mat4 u_NormalMatrix;
-    void main() {
+   precision mediump float;
+   attribute vec4 a_Position;
+   attribute vec2 a_UV;
+   attribute vec3 a_Normal;
+   varying vec2 v_UV;
+   varying vec3 v_Normal;
+   varying vec4 v_VertPos;
+   uniform mat4 u_ModelMatrix;
+   uniform mat4 u_NormalMatrix;
+   uniform mat4 u_GlobalRotateMatrix;
+   uniform mat4 u_ViewMatrix;
+   uniform mat4 u_ProjectionMatrix;
+   void main() {
       gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
       v_UV = a_UV;
-      v_Normal = normalize(vec3(u_NormalMatrix*vec4(a_Normal,1)));
+      v_Normal = normalize(vec3(u_NormalMatrix * vec4(a_Normal,1)));
       v_VertPos = u_ModelMatrix * a_Position;
-    }
-`;
+   }`;
 
-// Fragment shader program
-const FSHADER_SOURCE = `
+// Fragment shader program ========================================
+var FSHADER_SOURCE = `
     precision mediump float;
     varying vec2 v_UV;
     varying vec3 v_Normal;
     uniform vec4 u_FragColor;
     uniform sampler2D u_Sampler0;
+    uniform sampler2D u_Sampler1;
     uniform int u_whichTexture;
     uniform vec3 u_lightPos;
+    uniform vec3 u_cameraPos;
     varying vec4 v_VertPos;
+    uniform bool u_lightOn;
 
     void main() {
-      if (u_whichTexture == -3) {
-        gl_FragColor = vec4((v_Normal+1.0)/2.0, 1.0); // Use normal
-      }
-      else if (u_whichTexture == -2) {
-        gl_FragColor = u_FragColor; // Use color
-      } else if (u_whichTexture == -1) {
-        gl_FragColor = vec4(v_UV, 1.0, 1.0); // Use UV debug color
-      } else if (u_whichTexture == 0) {
-        gl_FragColor = texture2D(u_Sampler0, v_UV); // Use texture0
+      if(u_whichTexture == -3){
+         gl_FragColor = vec4((v_Normal+1.0)/2.0, 1.0); // Use normal
+      } else if(u_whichTexture == -2){
+         gl_FragColor = u_FragColor;                  // Use color
+      } else if (u_whichTexture == -1){
+         gl_FragColor = vec4(v_UV, 1.0, 1.0);         // Use UV debug color
+      } else if(u_whichTexture == 0){
+         gl_FragColor = texture2D(u_Sampler0, v_UV);  // Use texture0
       } else {
-        gl_FragColor = vec4(1, 0.2, 0.2, 1); // Error, put Redish
+         gl_FragColor = vec4(1,.2,.2,1);              
       }
 
       vec3 lightVector = u_lightPos-vec3(v_VertPos);
       float r = length(lightVector);
 
-      if(r<1.0){
-         gl_FragColor = vec4(1,0,0,1);
-      } else if (r<2.0){
-         gl_FragColor = vec4(0,1,0,1);
+      // N dot L
+      vec3 L = normalize(lightVector);
+      vec3 N = normalize(v_Normal);
+      float nDotL = max(dot(N,L), 0.0);
+
+      // Reflection
+      vec3 R = reflect(-L,N);
+
+      // eye
+      vec3 E = normalize(u_cameraPos-vec3(v_VertPos));
+
+      // Specular
+      float specular = pow(max(dot(E,R), 0.0), 10.0)* 0.5;
+
+      vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.7;
+      vec3 ambient = vec3(gl_FragColor) * 0.3;
+      if(u_lightOn){
+            gl_FragColor = vec4(specular+diffuse+ambient, 1.0);
       }
-    }
-`;
+    }`;
 
 const SNAKE_COLOR = [6 / 255, 100 / 255, 70 / 255, 1];
 
@@ -76,7 +90,9 @@ let canvas,
   u_GlobalRotateMatrix,
   u_Sampler0,
   u_whichTexture,
-  u_lightPos;
+  u_lightPos,
+  u_cameraPos,
+  u_lightOn;
 
 // UI-controlled globals
 let g_yellowAngle = 0;
@@ -85,7 +101,8 @@ let g_toungueLen = 0.7;
 let g_yellowAnimation = false;
 let g_magentaAnimation = false;
 let g_toungueAnimation = false;
-let g_lightPos = [0, 1, -2];
+let g_lightPos = [0, 1, 0];
+let g_lightOn = true;
 
 // Snake jump trackers
 let g_snakeJump = 0;
@@ -109,7 +126,7 @@ let g_seconds = performance.now() / 1000.0 - g_startTime;
 let camera;
 
 // Normals
-let g_normalOn = false;
+let g_normalOn = true;
 
 // Set up WebGL context and enable transparency
 function setupWebGL() {
@@ -171,6 +188,18 @@ function connectVariablesToGLSL() {
     return;
   }
 
+  u_cameraPos = gl.getUniformLocation(gl.program, "u_cameraPos");
+  if (!u_cameraPos) {
+    console.log("Failed to get u_cameraPos");
+    return;
+  }
+
+  u_lightOn = gl.getUniformLocation(gl.program, "u_lightOn");
+  if (!u_lightOn) {
+    console.log("Failed to get u_lightOn");
+    return;
+  }
+
   if (
     a_Position < 0 ||
     a_UV < 0 ||
@@ -207,6 +236,9 @@ function addActionsForHtmlUI() {
 
   document.getElementById("normalOn").onclick = () => (g_normalOn = true);
   document.getElementById("normalOff").onclick = () => (g_normalOn = false);
+
+  document.getElementById("lightOn").onclick = () => (g_lightOn = true);
+  document.getElementById("lightOff").onclick = () => (g_lightOn = false);
 
   document
     .getElementById("angleSlide")
@@ -456,11 +488,22 @@ function renderScene() {
   // Set the light position
   gl.uniform3f(u_lightPos, g_lightPos[0], g_lightPos[1], g_lightPos[2]);
 
+  // Set the camera position
+  gl.uniform3f(
+    u_cameraPos,
+    camera.eye.elements[0],
+    camera.eye.elements[1],
+    camera.eye.elements[2]
+  );
+
+  // Set the light on/off
+  gl.uniform1i(u_lightOn, g_lightOn);
+
   // Draw the light
   var light = new Cube();
   light.color = [1, 2, 0, 1];
   light.matrix.translate(g_lightPos[0], g_lightPos[1], g_lightPos[2]);
-  light.matrix.scale(0.1, 0.1, 0.1);
+  light.matrix.scale(-0.1, -0.1, -0.1);
   light.matrix.translate(-0.5, -0.5, -0.5);
   light.render();
   // Draw the floor
