@@ -398,6 +398,8 @@ function updateAnimationAngles() {
   if (g_magentaAnimation) g_magAngle = 15 * Math.sin(g_seconds);
   if (g_toungueAnimation)
     g_toungueLen = 0.65 + 0.35 * Math.sin(g_seconds * 1.5);
+
+  g_lightPos[0] = Math.cos(g_seconds);
 }
 
 function keydown(ev) {
