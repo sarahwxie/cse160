@@ -307,7 +307,7 @@ function main() {
   setupWebGL();
   connectVariablesToGLSL();
   addActionsForHtmlUI();
-  // addMouseControl();
+  addMouseControl();
 
   camera = new Camera();
 
@@ -358,32 +358,6 @@ function keydown(ev) {
   renderScene();
 }
 
-var g_map = [
-  [1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 1, 0, 1],
-  [1, 0, 0, 0, 0, 1, 1, 1],
-];
-
-function drawMap() {
-  for (x = 0; x < 32; x++) {
-    for (y = 0; y < 32; y++) {
-      // console.log(x, y);
-      if (x == 0 || x == 31 || y == 0 || y == 31) {
-        var body = new Cube();
-        body.color = [0.8, 1.0, 0.1, 1.0];
-        body.matrix.translate(0, -0.75, 0);
-        body.matrix.scale(0.3, 0.3, 0.3);
-        body.matrix.translate(x - 16, 0, y - 16);
-        body.renderFast();
-      }
-    }
-  }
-}
 // Render all objects in the scene
 function renderScene() {
   // Pass the projection matrix
@@ -421,24 +395,23 @@ function renderScene() {
   floor.matrix.translate(0, -0.75, 0.0);
   floor.matrix.scale(10, 0.01, 10);
   floor.matrix.translate(-0.5, 0, -0.5);
-  floor.renderFast();
+  floor.render();
 
   // Draw the sky
   var sky = new Cube();
   sky.color = [135 / 255, 206 / 255, 235 / 255, 1];
   sky.textureNum = -2;
-  sky.matrix.scale(50, 50, 50);
+  sky.matrix.scale(10, 10, 10);
   sky.matrix.translate(-0.5, -0.5, -0.5); // Center the box
-  sky.renderFast();
+  sky.render();
 
   // Snake Base
   const body = new Cube();
   body.color = SNAKE_COLOR;
-  body.textureNum = 0;
   body.matrix.translate(-0.1, -0.75 + g_snakeJump, 0.0);
   body.matrix.rotate(-5, 1, 0, 0);
   body.matrix.scale(1.5, 0.3, 0.3);
-  body.renderFast();
+  body.render();
 
   // snake body
   const leftArm = new Cube();
@@ -449,7 +422,7 @@ function renderScene() {
   const yellowCoordinatesMat = new Matrix4(leftArm.matrix);
   leftArm.matrix.scale(0.25, 0.7, 0.25);
   leftArm.matrix.translate(-0.5, 0, 0.0);
-  leftArm.renderFast();
+  leftArm.render();
 
   // snake head
   const box = new Cube();
@@ -460,7 +433,7 @@ function renderScene() {
   box.matrix.scale(0.3, 0.3, 0.3);
   box.matrix.translate(-0.5, 0, -0.001);
   const headCoordinatesMat = new Matrix4(box.matrix); // Save head matrix for tongue
-  box.renderFast();
+  box.render();
 
   // Snake tongue
   const tongue = new Pyramid();
@@ -470,7 +443,4 @@ function renderScene() {
   tongue.matrix.translate(0.35, 0.2, 0);
   tongue.matrix.scale(0.2, 0.2, g_toungueLen);
   tongue.render();
-
-  // draw the map
-  drawMap();
 }
