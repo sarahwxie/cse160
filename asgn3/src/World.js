@@ -82,6 +82,9 @@ let g_seconds = performance.now() / 1000.0 - g_startTime;
 
 // view
 let camera;
+var g_eye = [0, 0, 3];
+var g_at = [0, 0, -100];
+var g_up = [0, 1, 0];
 
 // Set up WebGL context and enable transparency
 function setupWebGL() {
@@ -305,6 +308,7 @@ function main() {
   connectVariablesToGLSL();
   addActionsForHtmlUI();
   // addMouseControl();
+
   camera = new Camera();
 
   document.onkeydown = keydown;

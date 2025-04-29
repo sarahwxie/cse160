@@ -1,42 +1,52 @@
 class Camera {
   constructor() {
-    //this.type="cube"
-    //this.position=[0,0,0,0,0,0,0]
-    //this.color=[1.0,1.0,1.0,1.0]
-    this.at = new Vector3(0, 0, 3);
-    this.eye = new Vector3(0, 0, -100);
-    this.up = new Vector3(0, 1, 0);
+    console.log("Camera constructor");
+    this.at = new Vector3([0, 0, -100]);
+    this.eye = new Vector3([0, 0, 3]);
+    this.up = new Vector3([0, 1, 0]);
   }
 
   forward() {
-    var f = this.at.sub(this.eye);
-    f = f.div(f.magnitude());
-    this.at = this.at.add(f);
-    this.eye = this.eye.add(f);
+    let f = new Vector3(this.at.elements); // clone
+    f.sub(this.eye); // direction vector
+    f.normalize(); // unit vector
+
+    // Move both at and eye forward
+    this.at.add(new Vector3(f.elements));
+    this.eye.add(new Vector3(f.elements));
   }
 
   back() {
-    var f = this.eye.sub(this.at);
-    f = f.div(f.magnitude());
-    this.at = this.at.add(f);
-    this.eye = this.eye.add(f);
+    let f = new Vector3(this.eye.elements); // clone
+    f.sub(this.at);
+    f.normalize();
+
+    // Move both at and eye backward
+    this.at.add(new Vector3(f.elements));
+    this.eye.add(new Vector3(f.elements));
   }
 
   left() {
-    var f = this.eye.sub(this.at);
-    f = f.div(f.magnitude());
-    var s = f.cross(this.up);
-    s = s.div(s.magnitude());
-    this.at = this.at.add(s);
-    this.eye = this.eye.add(s);
+    let f = new Vector3(this.at.elements);
+    f.sub(this.eye);
+    f.normalize();
+
+    let s = Vector3.cross(f, this.up); // sideways
+    s.normalize();
+
+    this.at.sub(new Vector3(s.elements));
+    this.eye.sub(new Vector3(s.elements));
   }
 
   right() {
-    var f = this.eye.sub(this.at);
-    f = f.div(f.magnitude());
-    var s = f.cross(this.up);
-    s = s.div(s.magnitude());
-    this.at = this.at.sub(s);
-    this.eye = this.eye.sub(s);
+    let f = new Vector3(this.at.elements);
+    f.sub(this.eye);
+    f.normalize();
+
+    let s = Vector3.cross(f, this.up);
+    s.normalize();
+
+    this.at.add(new Vector3(s.elements));
+    this.eye.add(new Vector3(s.elements));
   }
 }
