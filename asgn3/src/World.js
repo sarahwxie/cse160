@@ -111,6 +111,13 @@ function connectVariablesToGLSL() {
   u_ViewMatrix = gl.getUniformLocation(gl.program, "u_ViewMatrix");
   u_ProjectionMatrix = gl.getUniformLocation(gl.program, "u_ProjectionMatrix");
 
+  // Get the storage location of u_Sampler
+  var u_Sampler0 = gl.getUniformLocation(gl.program, "u_Sampler0");
+  if (!u_Sampler0) {
+    console.log("Failed to get the storage location of u_Sampler0");
+    return false;
+  }
+
   if (
     a_Position < 0 ||
     a_UV < 0 || // check a_UV too
@@ -240,20 +247,7 @@ function addMouseControl() {
   });
 }
 
-function initTextures(gl, n) {
-  var texture = gl.createTexture();
-  if (!texture) {
-    console.log("Failed to create the texture object");
-    return false;
-  }
-
-  // Get the storage location of u_Sampler
-  var u_Sampler = gl.getUniformLocation(gl.program, "u_Sampler0");
-  if (!u_Sampler) {
-    console.log("Failed to get the storage location of u_Sampler");
-    return false;
-  }
-
+function initTextures() {
   var image = new Image(); // Create the image object
   if (!image) {
     console.log("Failed to create the image object");
@@ -262,7 +256,7 @@ function initTextures(gl, n) {
 
   // Register the event handler to be called on loading an image
   image.onload = function () {
-    loadTexture(gl, n, texture, u_Sampler, image);
+    sendImageToTEXTURE0(image);
   };
   // Tell the browser to load an image
   image.src = "sky.jpg";
@@ -270,7 +264,13 @@ function initTextures(gl, n) {
   return true;
 }
 
-function loadTexture(gl, n, texture, u_Sampler, image) {
+function sendImageToTEXTURE0(image) {
+  var texture = gl.createTexture();
+  if (!texture) {
+    console.log("Failed to create the texture object");
+    return false;
+  }
+
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1); // Flip the image's y axis
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -282,7 +282,7 @@ function loadTexture(gl, n, texture, u_Sampler, image) {
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
 
   // Set the texture unit 0 to the sampler
-  gl.uniform1i(u_Sampler, 0);
+  gl.uniform1i(u_Sampler0, 0);
 
   console.log("Texture loaded successfully");
 }
@@ -290,13 +290,9 @@ function loadTexture(gl, n, texture, u_Sampler, image) {
 // Main entry point
 function main() {
   setupWebGL();
+  connectVariablesToGLSL();
   addActionsForHtmlUI();
-  addMouseControl();
-
-  if (!connectVariablesToGLSL()) {
-    console.log("Failed to connect variables to GLSL.");
-    return;
-  }
+  // addMouseControl();
 
   initTextures(gl, 0);
   gl.clearColor(1, 1, 1, 1.0);
