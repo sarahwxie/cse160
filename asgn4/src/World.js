@@ -11,6 +11,7 @@ var VSHADER_SOURCE = `
     attribute vec3 a_Normal;
     varying vec2 v_UV;
     varying vec3 v_Normal;
+    varying vec4 v_VertPos;
     uniform mat4 u_ModelMatrix;
     uniform mat4 u_GlobalRotateMatrix;
     uniform mat4 u_ViewMatrix;
@@ -20,7 +21,7 @@ var VSHADER_SOURCE = `
       gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
       v_UV = a_UV;
       v_Normal = normalize(vec3(u_NormalMatrix*vec4(a_Normal,1)));
-
+      v_VertPos = u_ModelMatrix * a_Position;
     }
 `;
 
@@ -32,6 +33,9 @@ const FSHADER_SOURCE = `
     uniform vec4 u_FragColor;
     uniform sampler2D u_Sampler0;
     uniform int u_whichTexture;
+    uniform vec3 u_lightPos;
+    varying vec4 v_VertPos;
+
     void main() {
       if (u_whichTexture == -3) {
         gl_FragColor = vec4((v_Normal+1.0)/2.0, 1.0); // Use normal
@@ -44,6 +48,15 @@ const FSHADER_SOURCE = `
         gl_FragColor = texture2D(u_Sampler0, v_UV); // Use texture0
       } else {
         gl_FragColor = vec4(1, 0.2, 0.2, 1); // Error, put Redish
+      }
+
+      vec3 lightVector = u_lightPos-vec3(v_VertPos);
+      float r = length(lightVector);
+
+      if(r<1.0){
+         gl_FragColor = vec4(1,0,0,1);
+      } else if (r<2.0){
+         gl_FragColor = vec4(0,1,0,1);
       }
     }
 `;
@@ -62,7 +75,8 @@ let canvas,
   u_ViewMatrix,
   u_GlobalRotateMatrix,
   u_Sampler0,
-  u_whichTexture;
+  u_whichTexture,
+  u_lightPos;
 
 // UI-controlled globals
 let g_yellowAngle = 0;
@@ -71,6 +85,7 @@ let g_toungueLen = 0.7;
 let g_yellowAnimation = false;
 let g_magentaAnimation = false;
 let g_toungueAnimation = false;
+let g_lightPos = [0, 1, -2];
 
 // Snake jump trackers
 let g_snakeJump = 0;
@@ -150,6 +165,12 @@ function connectVariablesToGLSL() {
     return false;
   }
 
+  u_lightPos = gl.getUniformLocation(gl.program, "u_lightPos");
+  if (!u_lightPos) {
+    console.log("Failed to get u_lightPos");
+    return;
+  }
+
   if (
     a_Position < 0 ||
     a_UV < 0 ||
@@ -198,6 +219,27 @@ function addActionsForHtmlUI() {
     .getElementById("angleSlideY")
     .addEventListener("mousemove", function () {
       g_xRotation = this.value;
+      renderScene();
+    });
+
+  document
+    .getElementById("lightSlideX")
+    .addEventListener("mousemove", function () {
+      g_lightPos[0] = this.value;
+      renderScene();
+    });
+
+  document
+    .getElementById("lightSlideY")
+    .addEventListener("mousemove", function () {
+      g_lightPos[1] = this.value;
+      renderScene();
+    });
+
+  document
+    .getElementById("lightSlideZ")
+    .addEventListener("mousemove", function () {
+      g_lightPos[2] = this.value;
       renderScene();
     });
 
@@ -409,6 +451,16 @@ function renderScene() {
 
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+  // Set the light position
+  gl.uniform3f(u_lightPos, g_lightPos[0], g_lightPos[1], g_lightPos[2]);
+
+  // Draw the light
+  var light = new Cube();
+  light.color = [1, 2, 0, 1];
+  light.matrix.translate(g_lightPos[0], g_lightPos[1], g_lightPos[2]);
+  light.matrix.scale(0.1, 0.1, 0.1);
+  light.matrix.translate(-0.5, -0.5, -0.5);
+  light.render();
   // Draw the floor
   var floor = new Cube();
   floor.color = [1, 0, 0, 0.0, 1.0];
@@ -473,7 +525,7 @@ function renderScene() {
   const sphere = new Sphere();
   sphere.color = [0.5, 0.5, 1.0, 1.0]; // Light blue color
   if (g_normalOn) sphere.textureNum = -3; // Use normals
-  sphere.matrix.translate(0, 0, 0); // Center of the screen
+  sphere.matrix.translate(-1, 0, 0); // Center of the screen
   sphere.matrix.scale(0.5, 0.5, 0.5); // Adjust size
   sphere.render();
 }
