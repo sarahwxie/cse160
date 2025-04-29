@@ -60,19 +60,6 @@
     </canvas>
 
     <div class="d-flex flex-column align-items-center w-50">
-      <div class="mb-3">
-        <p>
-          Yellow Animation:
-          <button type="button" id="aniOn" class="btn">On</button>
-          <button type="button" id="aniOff" class="btn">Off</button>
-        </p>
-        <p>
-          Magenta Animation:
-          <button type="button" id="magAniOn" class="btn">On</button>
-          <button type="button" id="magAniOff" class="btn">Off</button>
-        </p>
-      </div>
-
       <div class="slider-container">
         <label for="angleSlide" class="form-label slider-label"
           >Camera Angle</label
@@ -89,7 +76,7 @@
 
       <div class="slider-container">
         <label for="yellowAngle" class="form-label slider-label"
-          >Yellow Angle</label
+          >Body Angle</label
         >
         <input
           type="range"
@@ -99,11 +86,13 @@
           max="45"
           class="form-range slider"
         />
+        <button type="button" id="aniOn" class="btn">On</button>
+        <button type="button" id="aniOff" class="btn">Off</button>
       </div>
 
       <div class="slider-container">
         <label for="magAngle" class="form-label slider-label">
-          Magenta Angle</label
+          Head Angle</label
         >
         <input
           type="range"
@@ -113,6 +102,24 @@
           max="45"
           class="form-range slider"
         />
+        <button type="button" id="magAniOn" class="btn">On</button>
+        <button type="button" id="magAniOff" class="btn">Off</button>
+      </div>
+
+      <div class="slider-container">
+        <label for="magAngle" class="form-label slider-label">
+          Toungue Length</label
+        >
+        <input
+          type="range"
+          id="tLen"
+          name="tLen"
+          min="0"
+          max="10"
+          class="form-range slider"
+        />
+        <button type="button" id="tOn" class="btn">On</button>
+        <button type="button" id="tOff" class="btn">Off</button>
       </div>
     </div>
 
@@ -122,10 +129,9 @@
     <script src="../lib/webgl-debug.js"></script>
     <script src="../lib/cuon-utils.js"></script>
     <script src="../lib/cuon-matrix.js"></script>
-    <script src="Point.js"></script>
     <script src="Triangle.js"></script>
-    <script src="Circle.js"></script>
     <script src="Cube.js"></script>
+    <script src="TrianglePrism.js"></script>
     <script src="BlockyAnimal.js"></script>
   </body>
 </html>
