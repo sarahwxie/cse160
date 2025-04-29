@@ -80,10 +80,10 @@ let lastMouseY = 0;
 let g_startTime = performance.now() / 1000.0;
 let g_seconds = performance.now() / 1000.0 - g_startTime;
 
-// FPS Tracking
-let lastFrameTime = performance.now();
-let frameCount = 0;
-let fps = 0;
+// view
+var g_eye = [0, 0, 3];
+var g_at = [0, 0, -100];
+var g_up = [0, 1, 0];
 
 // Set up WebGL context and enable transparency
 function setupWebGL() {
@@ -319,21 +319,6 @@ function tick() {
   const currentTime = performance.now();
   g_seconds = currentTime / 1000.0 - g_startTime;
 
-  // Calculate FPS
-  frameCount++;
-  const deltaTime = currentTime - lastFrameTime;
-  if (deltaTime >= 1000) {
-    fps = frameCount;
-    frameCount = 0;
-    lastFrameTime = currentTime;
-
-    // Update the FPS display
-    const fpsElement = document.getElementById("fpsValue");
-    if (fpsElement) {
-      fpsElement.textContent = `${fps}`;
-    }
-  }
-
   updateAnimationAngles();
   renderScene();
   requestAnimationFrame(tick);
@@ -351,10 +336,22 @@ function updateAnimationAngles() {
 function renderScene() {
   // Pass the projection matrix
   var projMat = new Matrix4();
+  projMat.setPerspective(60, canvas.width / canvas.height, 0.1, 10);
   gl.uniformMatrix4fv(u_ProjectionMatrix, false, projMat.elements);
 
   // Pass the view matrix
   var viewMat = new Matrix4();
+  viewMat.setLookAt(
+    g_eye[0],
+    g_eye[1],
+    g_eye[2],
+    g_at[0],
+    g_at[1],
+    g_at[2],
+    g_up[0],
+    g_up[1],
+    g_up[2]
+  );
   gl.uniformMatrix4fv(u_ViewMatrix, false, viewMat.elements);
 
   // ------------------
