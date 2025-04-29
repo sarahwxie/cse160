@@ -15,10 +15,11 @@ var VSHADER_SOURCE = `
     uniform mat4 u_GlobalRotateMatrix;
     uniform mat4 u_ViewMatrix;
     uniform mat4 u_ProjectionMatrix;
+    uniform mat4 u_NormalMatrix;
     void main() {
       gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
       v_UV = a_UV;
-      v_Normal = a_Normal;
+      v_Normal = normalize(vec3(u_NormalMatrix*vec4(a_Normal,1)));
 
     }
 `;
@@ -91,9 +92,9 @@ let g_seconds = performance.now() / 1000.0 - g_startTime;
 
 // view
 let camera;
-var g_eye = [0, 0, 3];
-var g_at = [0, 0, -100];
-var g_up = [0, 1, 0];
+
+// Normals
+let g_normalOn = false;
 
 // Set up WebGL context and enable transparency
 function setupWebGL() {
@@ -126,6 +127,12 @@ function connectVariablesToGLSL() {
     gl.program,
     "u_GlobalRotateMatrix"
   );
+
+  u_NormalMatrix = gl.getUniformLocation(gl.program, "u_NormalMatrix");
+  if (!u_NormalMatrix) {
+    console.log("Failed to get the storage location of u_NormalMatrix");
+    return;
+  }
 
   u_ViewMatrix = gl.getUniformLocation(gl.program, "u_ViewMatrix");
   u_ProjectionMatrix = gl.getUniformLocation(gl.program, "u_ProjectionMatrix");
@@ -176,6 +183,9 @@ function addActionsForHtmlUI() {
 
   document.getElementById("tOff").onclick = () => (g_toungueAnimation = false);
   document.getElementById("tOn").onclick = () => (g_toungueAnimation = true);
+
+  document.getElementById("normalOn").onclick = () => (g_normalOn = true);
+  document.getElementById("normalOff").onclick = () => (g_normalOn = false);
 
   document
     .getElementById("angleSlide")
@@ -411,14 +421,15 @@ function renderScene() {
   // Draw the sky
   var sky = new Cube();
   sky.color = [135 / 255, 206 / 255, 235 / 255, 1];
-  sky.textureNum = -2;
-  sky.matrix.scale(10, 10, 10);
+  if (g_normalOn) sky.textureNum = -3; // Use normals
+  sky.matrix.scale(-10, -10, -10);
   sky.matrix.translate(-0.5, -0.5, -0.5); // Center the box
   sky.render();
 
   // Snake Base
   const body = new Cube();
   body.color = SNAKE_COLOR;
+  if (g_normalOn) body.textureNum = -3; // Use normals
   body.matrix.translate(-0.1, -0.75 + g_snakeJump, 0.0);
   body.matrix.rotate(-5, 1, 0, 0);
   body.matrix.scale(1.5, 0.3, 0.3);
@@ -427,6 +438,7 @@ function renderScene() {
   // snake body
   const leftArm = new Cube();
   leftArm.color = SNAKE_COLOR;
+  if (g_normalOn) leftArm.textureNum = -3; // Use normals
   leftArm.matrix.setTranslate(0, -0.5 + g_snakeJump, 0.0);
   leftArm.matrix.rotate(-5, 1, 0, 0);
   leftArm.matrix.rotate(-g_yellowAngle, 0, 0, 1);
@@ -438,6 +450,7 @@ function renderScene() {
   // snake head
   const box = new Cube();
   box.color = SNAKE_COLOR;
+  if (g_normalOn) box.textureNum = -3; // Use normals
   box.matrix = yellowCoordinatesMat;
   box.matrix.translate(0, 0.65, 0.0);
   box.matrix.rotate(-g_magAngle, 0, 0.0, 1.0);
@@ -449,6 +462,7 @@ function renderScene() {
   // Snake tongue
   const tongue = new Pyramid();
   tongue.color = [1.0, 0.0, 0.0, 1.0];
+  if (g_normalOn) tongue.textureNum = -3; // Use normals
   tongue.matrix = headCoordinatesMat;
   tongue.matrix.rotate(-90, 0, 1, 0);
   tongue.matrix.translate(0.35, 0.2, 0);
