@@ -13,6 +13,10 @@ class Cube {
 
     // Front face (xy-plane, z = 0)
     gl.uniform4f(u_FragColor, rgba[0], rgba[1], rgba[2], rgba[3]);
+    // drawTriangle3DUV(
+    //   [0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+    //   [0, 0, 1, 0, 1, 1]
+    // );
     drawTriangle3D([0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0]);
     drawTriangle3D([0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0]);
 

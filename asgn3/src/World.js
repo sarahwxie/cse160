@@ -13,8 +13,8 @@ var VSHADER_SOURCE = `
     uniform mat4 u_ViewMatrix;
     uniform mat4 u_ProjectionMatrix;
     void main() {
-        gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
-        // v_UV = a_UV;
+      gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
+      v_UV = a_UV;
     }
 `;
 
@@ -32,7 +32,15 @@ const FSHADER_SOURCE = `
 const SNAKE_COLOR = [6 / 255, 100 / 255, 70 / 255, 1];
 
 // Global WebGL variables
-let canvas, gl, a_Position, u_FragColor, u_ModelMatrix, u_GlobalRotateMatrix;
+let canvas,
+  gl,
+  a_Position,
+  a_UV,
+  u_FragColor,
+  u_ModelMatrix,
+  u_ProjectionMatrix,
+  u_ViewMatrix,
+  u_GlobalRotateMatrix;
 
 // UI-controlled globals
 let g_yellowAngle = 0;
@@ -88,6 +96,7 @@ function connectVariablesToGLSL() {
   }
 
   a_Position = gl.getAttribLocation(gl.program, "a_Position");
+  a_UV = gl.getAttribLocation(gl.program, "a_UV");
   u_FragColor = gl.getUniformLocation(gl.program, "u_FragColor");
   u_ModelMatrix = gl.getUniformLocation(gl.program, "u_ModelMatrix");
   u_GlobalRotateMatrix = gl.getUniformLocation(
@@ -95,11 +104,17 @@ function connectVariablesToGLSL() {
     "u_GlobalRotateMatrix"
   );
 
+  u_ViewMatrix = gl.getUniformLocation(gl.program, "u_ViewMatrix");
+  u_ProjectionMatrix = gl.getUniformLocation(gl.program, "u_ProjectionMatrix");
+
   if (
     a_Position < 0 ||
     !u_FragColor ||
     !u_ModelMatrix ||
-    !u_GlobalRotateMatrix
+    !u_GlobalRotateMatrix ||
+    a_UV < 0 ||
+    !u_ViewMatrix ||
+    !u_ProjectionMatrix
   ) {
     console.log("Failed to get GLSL variable locations");
     return;
