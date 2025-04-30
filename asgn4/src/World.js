@@ -229,11 +229,6 @@ function addActionsForHtmlUI() {
   document.getElementById("aniOff").onclick = () => (g_yellowAnimation = false);
   document.getElementById("aniOn").onclick = () => (g_yellowAnimation = true);
 
-  document.getElementById("lightAniOn").onclick = () =>
-    (g_lightAnimation = true);
-  document.getElementById("lightAniOff").onclick = () =>
-    (g_lightAnimation = false);
-
   document.getElementById("magAniOff").onclick = () =>
     (g_magentaAnimation = false);
   document.getElementById("magAniOn").onclick = () =>
@@ -271,6 +266,18 @@ function addActionsForHtmlUI() {
     .addEventListener("mousemove", function () {
       g_lightPos[0] = this.value;
       renderScene();
+    });
+
+  document
+    .getElementById("lightSlideX")
+    .addEventListener("mousedown", function () {
+      g_lightAnimation = false;
+    });
+
+  document
+    .getElementById("lightSlideX")
+    .addEventListener("mouseup", function () {
+      g_lightAnimation = true;
     });
 
   document
@@ -362,6 +369,7 @@ function addMouseControl() {
 
   canvas.addEventListener("mouseup", () => {
     isMouseDown = false;
+    g_lightAnimation = false;
   });
 
   canvas.addEventListener("mouseleave", () => {
