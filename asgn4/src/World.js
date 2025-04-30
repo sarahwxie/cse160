@@ -37,6 +37,7 @@ var FSHADER_SOURCE = `
     uniform vec3 u_cameraPos;
     varying vec4 v_VertPos;
     uniform bool u_lightOn;
+    uniform vec3 u_lightColor;
 
     void main() {
       if(u_whichTexture == -3){
@@ -68,10 +69,10 @@ var FSHADER_SOURCE = `
       // Specular
       float specular = pow(max(dot(E,R), 0.0), 10.0)* 0.5;
 
-      vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.7;
-      vec3 ambient = vec3(gl_FragColor) * 0.3;
+      vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.6;
+      vec3 ambient = vec3(gl_FragColor) * 0.5;
       if(u_lightOn){
-            gl_FragColor = vec4(specular+diffuse+ambient, 1.0);
+        gl_FragColor = vec4((specular+diffuse+ambient)*u_lightColor, 1.0);
       }
     }`;
 
@@ -93,7 +94,8 @@ let canvas,
   u_lightPos,
   u_cameraPos,
   u_lightOn,
-  u_spotLightOn;
+  u_spotLightOn,
+  u_lightColor;
 
 // UI-controlled globals
 let g_yellowAngle = 0;
@@ -124,10 +126,11 @@ let g_seconds = performance.now() / 1000.0 - g_startTime;
 
 // view
 let camera;
+let g_normalOn = true;
 
 // lighting
-let g_normalOn = true;
 let g_lightPos = [0, 1, 0];
+let g_lightColor = [1, 0.9, 0.8];
 let g_lightOn = true;
 let g_spotLightOn = false;
 
@@ -200,6 +203,12 @@ function connectVariablesToGLSL() {
   u_lightOn = gl.getUniformLocation(gl.program, "u_lightOn");
   if (!u_lightOn) {
     console.log("Failed to get u_lightOn");
+    return;
+  }
+
+  u_lightColor = gl.getUniformLocation(gl.program, "u_lightColor");
+  if (!u_lightColor) {
+    console.log("Failed to get the storage location of u_lightColor");
     return;
   }
 
@@ -295,6 +304,25 @@ function addActionsForHtmlUI() {
     });
 
   document
+    .getElementById("lightRed")
+    .addEventListener("mousemove", function () {
+      g_lightColor[0] = this.value / 255;
+      renderScene();
+    });
+  document
+    .getElementById("lightGreen")
+    .addEventListener("mousemove", function () {
+      g_lightColor[1] = this.value / 255;
+      renderScene();
+    });
+  document
+    .getElementById("lightBlue")
+    .addEventListener("mousemove", function () {
+      g_lightColor[2] = this.value / 255;
+      renderScene();
+    });
+
+  document
     .getElementById("yellowAngle")
     .addEventListener("mousemove", function () {
       g_yellowAngle = this.value;
@@ -369,7 +397,6 @@ function addMouseControl() {
 
   canvas.addEventListener("mouseup", () => {
     isMouseDown = false;
-    g_lightAnimation = false;
   });
 
   canvas.addEventListener("mouseleave", () => {
@@ -451,7 +478,7 @@ function updateAnimationAngles() {
   if (g_toungueAnimation)
     g_toungueLen = 0.65 + 0.35 * Math.sin(g_seconds * 1.5);
 
-  if (g_lightAnimation) g_lightPos[0] = Math.cos(g_seconds);
+  if (g_lightAnimation) g_lightPos[0] = 2 * Math.cos(g_seconds);
 }
 
 function keydown(ev) {
@@ -516,6 +543,9 @@ function renderScene() {
     camera.eye.elements[2]
   );
 
+  // Set the light color
+  gl.uniform3f(u_lightColor, g_lightColor[0], g_lightColor[1], g_lightColor[2]);
+
   // Set the light on/off
   gl.uniform1i(u_lightOn, g_lightOn);
 
@@ -524,15 +554,15 @@ function renderScene() {
 
   // Draw the light
   var light = new Cube();
-  light.color = [1, 2, 0, 1];
+  light.color = g_lightColor;
   light.matrix.translate(g_lightPos[0], g_lightPos[1], g_lightPos[2]);
   light.matrix.scale(-0.1, -0.1, -0.1);
   light.matrix.translate(-0.5, -0.5, -0.5);
   light.render();
+
   // Draw the floor
   var floor = new Cube();
-  floor.color = [1, 0, 0, 0.0, 1.0];
-  floor.textureNum = 0;
+  floor.color = [0.9, 0.9, 0.9, 1.0];
   floor.matrix.translate(0, -0.75, 0.0);
   floor.matrix.scale(10, 0.01, 10);
   floor.matrix.translate(-0.5, 0, -0.5);
@@ -540,6 +570,7 @@ function renderScene() {
 
   // Draw the sky
   var sky = new Cube();
+  sky.type = "sky";
   sky.color = [135 / 255, 206 / 255, 235 / 255, 1];
   if (g_normalOn) sky.textureNum = -3; // Use normals
   sky.matrix.scale(-10, -10, -10);

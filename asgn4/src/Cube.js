@@ -85,7 +85,14 @@ class Cube {
 
   render() {
     // Update normal matrix (required for correct lighting)
-    this.normalMatrix.setInverseOf(this.matrix).transpose();
+
+    if (this.type === "sky") {
+      this.normalMatrix.setInverseOf(this.matrix).transpose();
+    } else {
+      this.normalMatrix.setInverseOf(this.matrix);
+      this.normalMatrix.transpose();
+      this.normalMatrix.scale(-1, -1, -1);
+    }
 
     // Set shader uniforms
     gl.uniform1i(u_whichTexture, this.textureNum);

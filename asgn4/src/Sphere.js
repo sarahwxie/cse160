@@ -35,37 +35,27 @@ class Sphere {
           cos(t + dd),
         ];
 
-        var v = [];
-        var uv = [];
+        let v1 = [].concat(p1, p2, p4);
+        let v2 = [].concat(p1, p4, p3);
 
-        v = v.concat(p1);
-        uv = uv.concat([0, 0]);
-        v = v.concat(p2);
-        uv = uv.concat([0, 0]);
-        v = v.concat(p4);
-        uv = uv.concat([0, 0]);
+        // Normals = flipped (negated) positions
+        let n1 = v1.map((n) => -n);
+        let n2 = v2.map((n) => -n);
+
+        let uv = [0, 0, 0, 0, 0, 0]; // placeholder UVs
 
         gl.uniform4f(u_FragColor, 1, 1, 1, 1);
         drawTriangle3DUVNormal(
-          new Float32Array(v),
+          new Float32Array(v1),
           new Float32Array(uv),
-          new Float32Array(v)
+          new Float32Array(n1)
         );
-
-        v = [];
-        uv = [];
-        v = v.concat(p1);
-        uv = uv.concat([0, 0]);
-        v = v.concat(p4);
-        uv = uv.concat([0, 0]);
-        v = v.concat(p3);
-        uv = uv.concat([0, 0]);
 
         gl.uniform4f(u_FragColor, 1, 0, 0, 1);
         drawTriangle3DUVNormal(
-          new Float32Array(v),
+          new Float32Array(v2),
           new Float32Array(uv),
-          new Float32Array(v)
+          new Float32Array(n2)
         );
       }
     }
