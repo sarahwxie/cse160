@@ -92,7 +92,8 @@ let canvas,
   u_whichTexture,
   u_lightPos,
   u_cameraPos,
-  u_lightOn;
+  u_lightOn,
+  u_spotLightOn;
 
 // UI-controlled globals
 let g_yellowAngle = 0;
@@ -101,8 +102,7 @@ let g_toungueLen = 0.7;
 let g_yellowAnimation = false;
 let g_magentaAnimation = false;
 let g_toungueAnimation = false;
-let g_lightPos = [0, 1, 0];
-let g_lightOn = true;
+let g_lightAnimation = true;
 
 // Snake jump trackers
 let g_snakeJump = 0;
@@ -125,8 +125,11 @@ let g_seconds = performance.now() / 1000.0 - g_startTime;
 // view
 let camera;
 
-// Normals
+// lighting
 let g_normalOn = true;
+let g_lightPos = [0, 1, 0];
+let g_lightOn = true;
+let g_spotLightOn = false;
 
 // Set up WebGL context and enable transparency
 function setupWebGL() {
@@ -226,6 +229,11 @@ function addActionsForHtmlUI() {
   document.getElementById("aniOff").onclick = () => (g_yellowAnimation = false);
   document.getElementById("aniOn").onclick = () => (g_yellowAnimation = true);
 
+  document.getElementById("lightAniOn").onclick = () =>
+    (g_lightAnimation = true);
+  document.getElementById("lightAniOff").onclick = () =>
+    (g_lightAnimation = false);
+
   document.getElementById("magAniOff").onclick = () =>
     (g_magentaAnimation = false);
   document.getElementById("magAniOn").onclick = () =>
@@ -239,6 +247,10 @@ function addActionsForHtmlUI() {
 
   document.getElementById("lightOn").onclick = () => (g_lightOn = true);
   document.getElementById("lightOff").onclick = () => (g_lightOn = false);
+
+  document.getElementById("spotLightOn").onclick = () => (g_spotLightOn = true);
+  document.getElementById("spotLightOff").onclick = () =>
+    (g_spotLightOn = false);
 
   document
     .getElementById("angleSlide")
@@ -431,7 +443,7 @@ function updateAnimationAngles() {
   if (g_toungueAnimation)
     g_toungueLen = 0.65 + 0.35 * Math.sin(g_seconds * 1.5);
 
-  g_lightPos[0] = Math.cos(g_seconds);
+  if (g_lightAnimation) g_lightPos[0] = Math.cos(g_seconds);
 }
 
 function keydown(ev) {
@@ -498,6 +510,9 @@ function renderScene() {
 
   // Set the light on/off
   gl.uniform1i(u_lightOn, g_lightOn);
+
+  // Set the spotlight on/off
+  gl.uniform1i(u_spotLightOn, g_spotLightOn);
 
   // Draw the light
   var light = new Cube();
