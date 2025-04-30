@@ -39,6 +39,10 @@ var FSHADER_SOURCE = `
     uniform bool u_lightOn;
     uniform vec3 u_lightColor;
 
+    uniform vec3 u_spotDirection; // Direction the spotlight is pointing
+    uniform float u_spotCutoff;   // Cosine of spotlight cutoff angle (e.g. cos(radians(12.5)))
+    uniform bool u_spotLightOn;   // Whether spotlight is active
+
     void main() {
       if(u_whichTexture == -3){
          gl_FragColor = vec4((v_Normal+1.0)/2.0, 1.0); // Use normal
@@ -71,9 +75,26 @@ var FSHADER_SOURCE = `
 
       vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.6;
       vec3 ambient = vec3(gl_FragColor) * 0.5;
-      if(u_lightOn){
-        gl_FragColor = vec4((specular+diffuse+ambient)*u_lightColor, 1.0);
+      
+      vec3 finalColor = ambient;
+
+      if (u_lightOn) {
+        float spotEffect = 1.0;
+
+        if (u_spotLightOn) {
+          vec3 lightDir = normalize(u_lightPos - vec3(v_VertPos));
+          float theta = dot(lightDir, normalize(-u_spotDirection));
+          if (theta > u_spotCutoff) {
+            spotEffect = pow(theta, 10.0); // controls falloff sharpness
+          } else {
+            spotEffect = 0.0; // outside spotlight cone
+          }
+        }
+
+        finalColor += spotEffect * (diffuse + specular);
       }
+
+      gl_FragColor = vec4(finalColor * u_lightColor, 1.0);
     }`;
 
 const SNAKE_COLOR = [6 / 255, 100 / 255, 70 / 255, 1];
@@ -212,6 +233,10 @@ function connectVariablesToGLSL() {
     return;
   }
 
+  u_spotDirection = gl.getUniformLocation(gl.program, "u_spotDirection");
+  u_spotCutoff = gl.getUniformLocation(gl.program, "u_spotCutoff");
+  u_spotLightOn = gl.getUniformLocation(gl.program, "u_spotLightOn");
+
   if (
     a_Position < 0 ||
     a_UV < 0 ||
@@ -220,7 +245,10 @@ function connectVariablesToGLSL() {
     !u_ModelMatrix ||
     !u_GlobalRotateMatrix ||
     !u_ViewMatrix ||
-    !u_ProjectionMatrix
+    !u_ProjectionMatrix ||
+    !u_spotDirection ||
+    !u_spotCutoff ||
+    !u_spotLightOn
   ) {
     console.log("Failed to get GLSL variable locations");
     return;
@@ -551,6 +579,8 @@ function renderScene() {
 
   // Set the spotlight on/off
   gl.uniform1i(u_spotLightOn, g_spotLightOn);
+  gl.uniform3f(u_spotDirection, 0.0, -1.0, 0.0); // e.g., pointing down
+  gl.uniform1f(u_spotCutoff, Math.cos((12.5 * Math.PI) / 180)); // convert degrees to radians
 
   // Draw the light
   var light = new Cube();
