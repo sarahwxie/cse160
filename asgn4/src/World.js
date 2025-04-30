@@ -42,6 +42,7 @@ var FSHADER_SOURCE = `
     uniform vec3 u_spotDirection; // Direction the spotlight is pointing
     uniform float u_spotCutoff;   // Cosine of spotlight cutoff angle (e.g. cos(radians(12.5)))
     uniform bool u_spotLightOn;   // Whether spotlight is active
+    uniform vec3 u_spotLightPos;
 
     void main() {
       if(u_whichTexture == -3){
@@ -82,12 +83,13 @@ var FSHADER_SOURCE = `
         float spotEffect = 1.0;
 
         if (u_spotLightOn) {
-          vec3 lightDir = normalize(u_lightPos - vec3(v_VertPos));
-          float theta = dot(lightDir, normalize(-u_spotDirection));
+          vec3 spotLightDir = normalize(u_spotLightPos - vec3(v_VertPos));
+          float theta = dot(spotLightDir, normalize(-u_spotDirection));
+
           if (theta > u_spotCutoff) {
             spotEffect = pow(theta, 10.0); // controls falloff sharpness
           } else {
-            spotEffect = 0.0; // outside spotlight cone
+            spotEffect = 0.5; // outside spotlight cone
           }
         }
 
@@ -116,7 +118,10 @@ let canvas,
   u_cameraPos,
   u_lightOn,
   u_spotLightOn,
-  u_lightColor;
+  u_lightColor,
+  u_spotLightPos,
+  u_spotDirection,
+  u_spotCutoff;
 
 // UI-controlled globals
 let g_yellowAngle = 0;
@@ -236,6 +241,7 @@ function connectVariablesToGLSL() {
   u_spotDirection = gl.getUniformLocation(gl.program, "u_spotDirection");
   u_spotCutoff = gl.getUniformLocation(gl.program, "u_spotCutoff");
   u_spotLightOn = gl.getUniformLocation(gl.program, "u_spotLightOn");
+  u_spotLightPos = gl.getUniformLocation(gl.program, "u_spotLightPos");
 
   if (
     a_Position < 0 ||
@@ -248,7 +254,8 @@ function connectVariablesToGLSL() {
     !u_ProjectionMatrix ||
     !u_spotDirection ||
     !u_spotCutoff ||
-    !u_spotLightOn
+    !u_spotLightOn ||
+    !u_spotLightPos
   ) {
     console.log("Failed to get GLSL variable locations");
     return;
@@ -579,7 +586,8 @@ function renderScene() {
 
   // Set the spotlight on/off
   gl.uniform1i(u_spotLightOn, g_spotLightOn);
-  gl.uniform3f(u_spotDirection, 0.0, -1.0, 0.0); // e.g., pointing down
+  gl.uniform3f(u_spotLightPos, 0.0, 1.0, 3.0);
+  gl.uniform3f(u_spotDirection, 0.0, -1.0, -2.0); // e.g., pointing down
   gl.uniform1f(u_spotCutoff, Math.cos((12.5 * Math.PI) / 180)); // convert degrees to radians
 
   // Draw the light
