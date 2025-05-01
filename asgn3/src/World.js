@@ -56,7 +56,8 @@ let canvas,
   u_GlobalRotateMatrix,
   u_Sampler0,
   u_Sampler1,
-  u_whichTexture;
+  u_whichTexture,
+  u_lightOn;
 
 // UI-controlled globals
 let g_yellowAngle = 0;
@@ -147,6 +148,12 @@ function connectVariablesToGLSL() {
   if (!u_whichTexture) {
     console.log("Failed to get the storage location of u_whichTexture");
     return false;
+  }
+
+  u_lightOn = gl.getUniformLocation(gl.program, "u_lightOn");
+  if (!u_lightOn) {
+    console.log("Failed to get u_lightOn");
+    return;
   }
 
   if (
@@ -362,7 +369,7 @@ function drawMap() {
         nugget.matrix.translate(x - 16, 0.2, y - 16); // position it slightly above the ground
         nugget.matrix.scale(0.2, 0.2, 0.2); // smaller size
         nugget.matrix.translate(-0.5, 0, -0.5); // center the cube
-        nugget.renderFast();
+        nugget.render();
         continue;
       }
 
@@ -379,7 +386,7 @@ function drawMap() {
           // Offset Y position by -0.75 / 0.3 = -2.5 blocks to touch the floor
           block.matrix.translate(0, -0.75, 0);
 
-          block.renderFast();
+          block.render();
         }
       }
     }
@@ -444,6 +451,20 @@ function renderScene() {
 
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+  // is night mode on?
+  if (nightMode) {
+    gl.uniform1i(u_lightOn, true); // enable flashlight
+    gl.uniform3f(
+      u_lightPos,
+      camera.eye.elements[0],
+      camera.eye.elements[1],
+      camera.eye.elements[2]
+    );
+    gl.uniform3f(u_lightColor, 1.0, 1.0, 1.0); // white light
+  } else {
+    gl.uniform1i(u_lightOn, false); // disable flashlight
+  }
+
   // Draw the floor
   var floor = new Cube();
   floor.color = [82 / 255, 105 / 255, 53 / 255, 1.0];
@@ -451,7 +472,7 @@ function renderScene() {
   floor.matrix.translate(0, -0.75, 0.0);
   floor.matrix.scale(32, 0.01, 32);
   floor.matrix.translate(-0.5, 0, -0.5);
-  floor.renderFast();
+  floor.render();
 
   // Draw the sky
   var sky = new Cube();
@@ -459,7 +480,7 @@ function renderScene() {
   sky.textureNum = 1;
   sky.matrix.scale(100, 100, 100);
   sky.matrix.translate(-0.5, -0.4, -0.5); // Center the box
-  sky.renderFast();
+  sky.render();
 
   // nugget pickup logic
   for (let x = 0; x < 32; x++) {

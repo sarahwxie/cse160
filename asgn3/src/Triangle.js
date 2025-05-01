@@ -57,8 +57,8 @@ function initTriangle3DUVNormal() {
     return -1;
   }
   gl.bindBuffer(gl.ARRAY_BUFFER, g_normalBuffer);
-  gl.vertexAttribPointer(a_Normal, 3, gl.FLOAT, false, 0, 0);
-  gl.enableVertexAttribArray(a_Normal);
+  //   gl.vertexAttribPointer(a_Normal, 3, gl.FLOAT, false, 0, 0);
+  //   gl.enableVertexAttribArray(a_Normal);
 }
 
 // ===============================

@@ -97,7 +97,7 @@ class Cube {
     // Set shader uniforms
     gl.uniform1i(u_whichTexture, this.textureNum);
     gl.uniformMatrix4fv(u_ModelMatrix, false, this.matrix.elements);
-    gl.uniformMatrix4fv(u_NormalMatrix, false, this.normalMatrix.elements);
+    // gl.uniformMatrix4fv(u_NormalMatrix, false, this.normalMatrix.elements);
 
     // Set fragment color (only used if solid color is active)
     const rgba = this.color;
