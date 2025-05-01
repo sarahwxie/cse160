@@ -291,7 +291,7 @@ function updateAnimationAngles() {
 }
 
 function keydown(ev) {
-  switch (ev.key) {
+  switch (ev.key.toLowerCase()) {
     case "w": // Move forward
       camera.forward();
       break;
@@ -303,6 +303,12 @@ function keydown(ev) {
       break;
     case "d": // Move right
       camera.right();
+      break;
+    case "q": // Rotate camera left
+      camera.rotate(-5, 0);
+      break;
+    case "e": // Rotate camera right
+      camera.rotate(5, 0);
       break;
     default:
       console.log(`Unhandled key: ${ev.key}`);
