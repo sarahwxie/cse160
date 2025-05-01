@@ -85,40 +85,38 @@ var FSHADER_SOURCE = `
       
       vec3 finalColor = ambient;
 
-      if (u_lightOn) {
-        float spotEffect = 1.0;
-         if (u_spotLightOn) {
+      if (u_lightOn || u_spotLightOn) {
+        vec3 totalLight = vec3(0.0);
+
+        // === Regular Light ===
+        if (u_lightOn) {
+          totalLight += diffuse + specular;
+        }
+
+        // === Spotlight ===
+        if (u_spotLightOn) {
           vec3 spotLightDir = normalize(u_spotLightPos - vec3(v_VertPos));
           float theta = dot(spotLightDir, normalize(-u_spotDirection));
 
           if (theta > u_spotCutoff) {
-            spotEffect = pow(theta, 10.0); // controls falloff sharpness
-          } else {
-            spotEffect = 0.5; // outside spotlight cone
+            float spotEffect = pow(theta, 10.0); // spotlight falloff
+
+            // Compute spotlight's diffuse/specular
+            vec3 L_spot = normalize(u_spotLightPos - vec3(v_VertPos));
+            vec3 N_spot = normalize(v_Normal);
+            float nDotL_spot = max(dot(N_spot, L_spot), 0.0);
+
+            vec3 R_spot = reflect(-L_spot, N_spot);
+            vec3 E_spot = normalize(u_cameraPos - vec3(v_VertPos));
+
+            float specular_spot = pow(max(dot(E_spot, R_spot), 0.0), 10.0) * 0.5;
+            vec3 diffuse_spot = vec3(gl_FragColor) * nDotL_spot * 0.6;
+
+            totalLight += spotEffect * (diffuse_spot + specular_spot);
           }
         }
-        finalColor += spotEffect * (diffuse + specular);
-      }
-      else if (u_spotLightOn) {
-        vec3 spotLightDir = normalize(u_spotLightPos - vec3(v_VertPos));
-        float theta = dot(spotLightDir, normalize(-u_spotDirection));
 
-        if (theta > u_spotCutoff) {
-          float spotEffect = pow(theta, 10.0); // sharp cutoff
-
-          // Recalculate diffuse and specular based on spotlight
-          vec3 L_spot = normalize(u_spotLightPos - vec3(v_VertPos));
-          vec3 N_spot = normalize(v_Normal);
-          float nDotL_spot = max(dot(N_spot, L_spot), 0.0);
-
-          vec3 R_spot = reflect(-L_spot, N_spot);
-          vec3 E_spot = normalize(u_cameraPos - vec3(v_VertPos));
-
-          float specular_spot = pow(max(dot(E_spot, R_spot), 0.0), 10.0) * 0.5;
-          vec3 diffuse_spot = vec3(gl_FragColor) * nDotL_spot * 0.6;
-
-          finalColor += spotEffect * (diffuse_spot + specular_spot);
-        }
+        finalColor += totalLight;
       }
 
       gl_FragColor = vec4(finalColor * u_lightColor, 1.0);
