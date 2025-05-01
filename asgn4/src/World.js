@@ -75,14 +75,19 @@ var FSHADER_SOURCE = `
       float specular = pow(max(dot(E,R), 0.0), 10.0)* 0.5;
 
       vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.6;
+
       vec3 ambient = vec3(gl_FragColor) * 0.5;
+      if (u_spotLightOn) {
+        ambient = vec3(gl_FragColor) * 0.1; 
+      } else if (u_lightOn) {
+        ambient = vec3(gl_FragColor) * 0.3; 
+      }
       
       vec3 finalColor = ambient;
 
       if (u_lightOn) {
         float spotEffect = 1.0;
-
-        if (u_spotLightOn) {
+         if (u_spotLightOn) {
           vec3 spotLightDir = normalize(u_spotLightPos - vec3(v_VertPos));
           float theta = dot(spotLightDir, normalize(-u_spotDirection));
 
@@ -91,6 +96,18 @@ var FSHADER_SOURCE = `
           } else {
             spotEffect = 0.5; // outside spotlight cone
           }
+        }
+        finalColor += spotEffect * (diffuse + specular);
+      }
+      else if (u_spotLightOn) {
+        float spotEffect;
+        vec3 spotLightDir = normalize(u_spotLightPos - vec3(v_VertPos));
+        float theta = dot(spotLightDir, normalize(-u_spotDirection));
+
+        if (theta > u_spotCutoff) {
+          spotEffect = pow(theta, 10.0);
+        } else {
+          spotEffect = 0.0;
         }
 
         finalColor += spotEffect * (diffuse + specular);
@@ -155,7 +172,7 @@ let camera;
 let g_normalOn = true;
 
 // lighting
-let g_lightPos = [0, 1, 0];
+let g_lightPos = [0, 1, 1];
 let g_lightColor = [1, 0.9, 0.8];
 let g_lightOn = true;
 let g_spotLightOn = false;
@@ -586,8 +603,8 @@ function renderScene() {
 
   // Set the spotlight on/off
   gl.uniform1i(u_spotLightOn, g_spotLightOn);
-  gl.uniform3f(u_spotLightPos, 0.0, 1.0, 3.0);
-  gl.uniform3f(u_spotDirection, 0.0, -1.0, -2.0); // e.g., pointing down
+  gl.uniform3f(u_spotLightPos, -2.0, 2.4, 3);
+  gl.uniform3f(u_spotDirection, 4.0, -6.0, -6.0);
   gl.uniform1f(u_spotCutoff, Math.cos((12.5 * Math.PI) / 180)); // convert degrees to radians
 
   // Draw the light
