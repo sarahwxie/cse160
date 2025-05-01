@@ -531,8 +531,8 @@ function tick() {
 
 // Update angles based on animation toggles
 function updateAnimationAngles() {
-  if (g_yellowAnimation) g_yellowAngle = -(10 * Math.sin(g_seconds) + 5);
-  if (g_magentaAnimation) g_magAngle = 15 * Math.sin(g_seconds);
+  if (g_yellowAnimation) g_yellowAngle = 22.5 * Math.sin(g_seconds) - 7.5;
+  if (g_magentaAnimation) g_magAngle = 22.5 * Math.sin(g_seconds) - 7.5;
   if (g_toungueAnimation)
     g_toungueLen = 0.65 + 0.35 * Math.sin(g_seconds * 1.5);
 
