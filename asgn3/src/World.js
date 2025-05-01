@@ -361,14 +361,25 @@ function keydown(ev) {
 function drawMap() {
   for (let x = 0; x < 32; x++) {
     for (let y = 0; y < 32; y++) {
-      if (g_map[x][y] !== 0) {
-        var body = new Cube();
-        body.color = [0.8, 1.0, 0.1, 1.0];
-        body.textureNum = 0;
-        body.matrix.translate(0, -0.75, 0);
-        body.matrix.scale(0.3, 0.3, 0.3);
-        body.matrix.translate(x - 16, 0, y - 16);
-        body.renderFast();
+      let height = g_map[x][y];
+      if (height !== 0) {
+        for (let h = 0; h < height; h++) {
+          let block = new Cube();
+          block.color = [0.8, 1.0, 0.1, 1.0];
+          block.textureNum = 0;
+
+          // Scale first (affects cube size)
+          block.matrix.scale(0.3, 0.3, 0.3);
+
+          // Then translate (after scale!)
+          // Each cube is stacked by translating 1 unit up in cube space (0.3 world units)
+          block.matrix.translate(x - 16, h, y - 16);
+
+          // Offset Y position by -0.75 / 0.3 = -2.5 blocks to touch the floor
+          block.matrix.translate(0, -2.5, 0);
+
+          block.renderFast();
+        }
       }
     }
   }
