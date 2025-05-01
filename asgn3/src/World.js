@@ -25,6 +25,7 @@ const FSHADER_SOURCE = `
     varying vec2 v_UV;
     uniform vec4 u_FragColor;
     uniform sampler2D u_Sampler0;
+    uniform sampler2D u_Sampler1;
     uniform int u_whichTexture;
     void main() {
       if (u_whichTexture == -2) {
@@ -33,7 +34,9 @@ const FSHADER_SOURCE = `
         gl_FragColor = vec4(v_UV, 1.0, 1.0); // Use UV debug color
       } else if (u_whichTexture == 0) {
         gl_FragColor = texture2D(u_Sampler0, v_UV); // Use texture0
-      } else {
+      } else if (u_whichTexture == 1) {
+       gl_FragColor = texture2D(u_Sampler1, v_UV); // Use texture1
+      } else{
         gl_FragColor = vec4(1, 0.2, 0.2, 1); // Error, put Redish
       }
     }
@@ -52,6 +55,7 @@ let canvas,
   u_ViewMatrix,
   u_GlobalRotateMatrix,
   u_Sampler0,
+  u_Sampler1,
   u_whichTexture;
 
 // UI-controlled globals
@@ -124,6 +128,13 @@ function connectVariablesToGLSL() {
   u_Sampler0 = gl.getUniformLocation(gl.program, "u_Sampler0");
   if (!u_Sampler0) {
     console.log("Failed to get the storage location of u_Sampler0");
+    return false;
+  }
+
+  // Get the storage location of u_Sampler
+  u_Sampler1 = gl.getUniformLocation(gl.program, "u_Sampler1");
+  if (!u_Sampler1) {
+    console.log("Failed to get the storage location of u_Sampler1");
     return false;
   }
 
@@ -216,43 +227,29 @@ function addMouseControl() {
 }
 
 function initTextures() {
-  var image = new Image(); // Create the image object
-  if (!image) {
-    console.log("Failed to create the image object");
-    return false;
-  }
-
-  // Register the event handler to be called on loading an image
-  image.onload = function () {
-    sendImageToTEXTURE0(image);
+  const dirtImage = new Image();
+  dirtImage.onload = () => {
+    sendImageToTexture(dirtImage, 0); // TEXTURE0
   };
-  // Tell the browser to load an image
-  image.src = "dirt.jpg";
+  dirtImage.src = "dirt.jpg";
+
+  const stoneImage = new Image();
+  stoneImage.onload = () => {
+    sendImageToTexture(stoneImage, 1); // TEXTURE1
+  };
+  stoneImage.src = "sky.jpg";
 
   return true;
 }
 
-function sendImageToTEXTURE0(image) {
-  var texture = gl.createTexture();
-  if (!texture) {
-    console.log("Failed to create the texture object");
-    return false;
-  }
-
-  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1); // Flip the image's y axis
-  gl.activeTexture(gl.TEXTURE0);
+function sendImageToTexture(image, textureUnit) {
+  const texture = gl.createTexture();
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+  gl.activeTexture(gl[`TEXTURE${textureUnit}`]);
   gl.bindTexture(gl.TEXTURE_2D, texture);
-
-  // Set the texture parameters
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
-  // Set the texture image
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
-
-  // Set the texture unit 0 to the sampler
-  gl.uniform1i(u_Sampler0, 0);
-
-  console.log("Texture loaded successfully");
+  gl.uniform1i(textureUnit === 0 ? u_Sampler0 : u_Sampler1, textureUnit);
 }
 
 // Main entry point
@@ -383,7 +380,7 @@ function renderScene() {
   // Draw the sky
   var sky = new Cube();
   sky.color = [135 / 255, 206 / 255, 235 / 255, 1];
-  sky.textureNum = -2;
+  sky.textureNum = 1;
   sky.matrix.scale(50, 50, 50);
   sky.matrix.translate(-0.5, -0.5, -0.5); // Center the box
   sky.renderFast();
