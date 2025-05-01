@@ -4,26 +4,27 @@ class Camera {
     this.at = new Vector3([0, 0, -100]);
     this.eye = new Vector3([0, 0, 3]);
     this.up = new Vector3([0, 1, 0]);
+    this.step = 0.2; // movement step size
   }
 
   forward() {
     let f = new Vector3(this.at.elements); // clone
-    f.sub(this.eye); // direction vector
-    f.normalize(); // unit vector
+    f.sub(this.eye);
+    f.normalize();
+    f.mul(this.step); // move by 0.2
 
-    // Move both at and eye forward
-    this.at.add(new Vector3(f.elements));
-    this.eye.add(new Vector3(f.elements));
+    this.at.add(f);
+    this.eye.add(f);
   }
 
   back() {
-    let f = new Vector3(this.eye.elements); // clone
+    let f = new Vector3(this.eye.elements);
     f.sub(this.at);
     f.normalize();
+    f.mul(this.step); // move by 0.2
 
-    // Move both at and eye backward
-    this.at.add(new Vector3(f.elements));
-    this.eye.add(new Vector3(f.elements));
+    this.at.add(f);
+    this.eye.add(f);
   }
 
   left() {
@@ -31,11 +32,12 @@ class Camera {
     f.sub(this.eye);
     f.normalize();
 
-    let s = Vector3.cross(f, this.up); // sideways
+    let s = Vector3.cross(f, this.up);
     s.normalize();
+    s.mul(this.step);
 
-    this.at.sub(new Vector3(s.elements));
-    this.eye.sub(new Vector3(s.elements));
+    this.at.sub(s);
+    this.eye.sub(s);
   }
 
   right() {
@@ -45,8 +47,9 @@ class Camera {
 
     let s = Vector3.cross(f, this.up);
     s.normalize();
+    s.mul(this.step);
 
-    this.at.add(new Vector3(s.elements));
-    this.eye.add(new Vector3(s.elements));
+    this.at.add(s);
+    this.eye.add(s);
   }
 }
