@@ -1,115 +1,113 @@
-/**
- * Cube class for rendering a textured 3D cube with adjustable color and transformations.
- */
 class Cube {
-  constructor() {
-    // Cube properties
+  constructor(segments) {
+    // Basic cube properties
     this.type = "cube";
-    this.color = [0.5, 0.5, 0.5, 1.0];
-    this.matrix = new Matrix4();
-    this.textureNum = -2;
+    this.color = [1.0, 1.0, 1.0, 1.0]; // Default color (white)
+    this.matrix = new Matrix4(); // Model transformation matrix
+    this.normalMatrix = new Matrix4(); // Matrix for transforming normals
+    this.textureNum = -2; // Default texture (-2 = solid color)
 
-    // Vertex coordinates for all 6 faces (two triangles per face)
-    this.vertices = new Float32Array([
-      // Front face (XY plane at Z=0)
-      0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0,
+    // Vertex positions (XYZ) for each face of the cube
+    this.cubeVertsXYZ = new Float32Array([
+      // Front face (xy0 plane)
+      0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0,
+      1.0, 0.0, 0.0,
 
-      // Back face (XY plane at Z=1)
-      1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1,
+      // Back face (xy1 plane)
+      1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0,
+      0.0, 0.0, 1.0,
 
-      // Left face (YZ plane at X=0)
-      0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1,
+      // Left face (0yz plane)
+      0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0,
+      0.0, 0.0, 0.0,
 
-      // Right face (YZ plane at X=1)
-      1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1,
+      // Right face (1yz plane)
+      1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0,
+      1.0, 0.0, 1.0,
 
-      // Bottom face (XZ plane at Y=0)
-      1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1,
+      // Bottom face (x0z plane)
+      1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0,
+      0.0, 0.0, 1.0,
 
-      // Top face (XZ plane at Y=1)
-      0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0,
+      // Top face (x1z plane)
+      0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0,
+      0.0, 1.0, 0.0,
     ]);
 
-    // UV texture coordinates matching the above vertices
-    this.uvs = new Float32Array([
-      // Front
-      0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1,
+    // UV texture coordinates for each face
+    this.cubeVertsUV = new Float32Array([
+      // Front face (xy0)
+      0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0,
 
-      // Back
-      1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1,
+      // Back face (xy1)
+      1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0,
 
-      // Left
-      1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1,
+      // Left face (0yz)
+      1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0,
 
-      // Right
-      0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1,
+      // Right face (1yz)
+      0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1,
 
-      // Bottom
-      1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1,
+      // Bottom face (x0z)
+      1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1,
 
-      // Top
-      0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0,
+      // Top face (x1z)
+      0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0,
+    ]);
+
+    // Normals for each face (used for lighting calculations)
+    this.cubeVertsNormal = new Float32Array([
+      // Front face normals (+Z)
+      0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,
+      0.0, 0.0, 1.0,
+
+      // Back face normals (-Z)
+      0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0,
+      -1.0, 0.0, 0.0, -1.0,
+
+      // Left face normals (+X)
+      1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+      1.0, 0.0, 0.0,
+
+      // Right face normals (-X)
+      -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0,
+      0.0, -1.0, 0.0, 0.0,
+
+      // Bottom face normals (+Y)
+      0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0,
+      0.0, 1.0, 0.0,
+
+      // Top face normals (-Y)
+      0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0,
+      0.0, 0.0, -1.0, 0.0,
     ]);
   }
 
-  /**
-   * Render the cube face-by-face with shading based on face direction.
-   */
   render() {
-    // Pass in texture and transformation matrix
+    // Update normal matrix (required for correct lighting)
+
+    if (this.type === "sky") {
+      this.normalMatrix.setInverseOf(this.matrix).transpose();
+    } else {
+      this.normalMatrix.setInverseOf(this.matrix);
+      this.normalMatrix.transpose();
+      this.normalMatrix.scale(-1, -1, -1);
+    }
+
+    // Set shader uniforms
     gl.uniform1i(u_whichTexture, this.textureNum);
     gl.uniformMatrix4fv(u_ModelMatrix, false, this.matrix.elements);
+    gl.uniformMatrix4fv(u_NormalMatrix, false, this.normalMatrix.elements);
 
+    // Set fragment color (only used if solid color is active)
     const rgba = this.color;
+    gl.uniform4f(u_FragColor, rgba[0], rgba[1], rgba[2], rgba[3]);
 
-    // Define color shades for different faces
-    const shades = [1.0, 0.9, 0.8, 0.7, 0.6, 0.7];
-
-    const drawFace = (vertices, uvs, shade) => {
-      gl.uniform4f(
-        u_FragColor,
-        rgba[0] * shade,
-        rgba[1] * shade,
-        rgba[2] * shade,
-        rgba[3]
-      );
-      drawTriangle3DUV(vertices, uvs);
-    };
-
-    // Draw all 6 faces manually
-    drawFace([0, 0, 0, 1, 1, 0, 0, 1, 0], [0, 0, 1, 1, 0, 1], shades[0]);
-    drawFace([0, 0, 0, 1, 0, 0, 1, 1, 0], [0, 0, 1, 0, 1, 1], shades[0]);
-
-    drawFace([1, 1, 1, 0, 0, 1, 0, 1, 1], [1, 1, 0, 0, 0, 1], shades[1]);
-    drawFace([1, 0, 1, 0, 0, 1, 1, 1, 1], [1, 0, 0, 0, 1, 1], shades[1]);
-
-    drawFace([0, 1, 1, 0, 0, 0, 0, 1, 0], [1, 1, 0, 0, 1, 0], shades[2]);
-    drawFace([0, 0, 1, 0, 0, 0, 0, 1, 1], [0, 1, 0, 0, 1, 1], shades[2]);
-
-    drawFace([1, 0, 0, 1, 1, 1, 1, 1, 0], [0, 0, 1, 1, 1, 0], shades[3]);
-    drawFace([1, 0, 0, 1, 0, 1, 1, 1, 1], [0, 0, 0, 1, 1, 1], shades[3]);
-
-    drawFace([1, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 0, 0, 1, 1], shades[4]);
-    drawFace([0, 0, 0, 0, 0, 1, 1, 0, 1], [0, 0, 0, 1, 1, 1], shades[4]);
-
-    drawFace([0, 1, 1, 0, 1, 0, 1, 1, 1], [0, 1, 0, 0, 1, 1], shades[5]);
-    drawFace([1, 1, 1, 0, 1, 0, 1, 1, 0], [1, 1, 0, 0, 1, 0], shades[5]);
-  }
-
-  /**
-   * Faster rendering using pre-stored vertex and UV arrays.
-   * (Recommended for high-performance cases)
-   */
-  renderFast() {
-    gl.uniform1i(u_whichTexture, this.textureNum);
-    gl.uniformMatrix4fv(u_ModelMatrix, false, this.matrix.elements);
-    gl.uniform4f(
-      u_FragColor,
-      this.color[0],
-      this.color[1],
-      this.color[2],
-      this.color[3]
+    // Draw the cube
+    drawTriangle3DUVNormal(
+      this.cubeVertsXYZ,
+      this.cubeVertsUV,
+      this.cubeVertsNormal
     );
-    drawTriangle3DUV(this.vertices, this.uvs);
   }
 }

@@ -93,6 +93,7 @@ var g_up = [0, 1, 0];
 // game mechanics
 let nuggetsToWin = 20;
 let nuggetCount = 0;
+let nightMode = false;
 
 // Set up WebGL context and enable transparency
 function setupWebGL() {
@@ -174,6 +175,19 @@ function addActionsForHtmlUI() {
     nuggetsToWin = 3;
     document.querySelector(".right-column p").textContent =
       "Get 3 gold nuggets to win! (Debug Mode)";
+  });
+  document.querySelectorAll(".btn").forEach((btn) => {
+    if (btn.textContent === "Day") {
+      btn.addEventListener("click", () => {
+        nightMode = false;
+        renderScene();
+      });
+    } else if (btn.textContent === "Night") {
+      btn.addEventListener("click", () => {
+        nightMode = true;
+        renderScene();
+      });
+    }
   });
 }
 
