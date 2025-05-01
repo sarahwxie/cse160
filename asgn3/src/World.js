@@ -37,7 +37,6 @@ const FSHADER_SOURCE = `
 
   uniform bool u_lightOn;
   uniform vec3 u_lightPos;
-  uniform vec3 u_cameraPos;
   uniform vec3 u_spotDirection;
 
   void main() {
@@ -95,7 +94,6 @@ let canvas,
   u_Sampler1,
   u_whichTexture,
   u_lightOn,
-  u_cameraPos,
   u_lightPos;
 
 // UI-controlled globals
@@ -154,29 +152,60 @@ function setupWebGL() {
 function connectVariablesToGLSL() {
   if (!initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)) {
     console.log("Failed to initialize shaders.");
-    return;
+    return false;
   }
 
   a_Position = gl.getAttribLocation(gl.program, "a_Position");
+  if (a_Position < 0) {
+    console.log("Failed to get the storage location of a_Position");
+    return false;
+  }
+
   a_UV = gl.getAttribLocation(gl.program, "a_UV");
+  if (a_UV < 0) {
+    console.log("Failed to get the storage location of a_UV");
+    return false;
+  }
+
   u_FragColor = gl.getUniformLocation(gl.program, "u_FragColor");
+  if (!u_FragColor) {
+    console.log("Failed to get the storage location of u_FragColor");
+    return false;
+  }
+
   u_ModelMatrix = gl.getUniformLocation(gl.program, "u_ModelMatrix");
+  if (!u_ModelMatrix) {
+    console.log("Failed to get the storage location of u_ModelMatrix");
+    return false;
+  }
+
   u_GlobalRotateMatrix = gl.getUniformLocation(
     gl.program,
     "u_GlobalRotateMatrix"
   );
+  if (!u_GlobalRotateMatrix) {
+    console.log("Failed to get the storage location of u_GlobalRotateMatrix");
+    return false;
+  }
 
   u_ViewMatrix = gl.getUniformLocation(gl.program, "u_ViewMatrix");
-  u_ProjectionMatrix = gl.getUniformLocation(gl.program, "u_ProjectionMatrix");
+  if (!u_ViewMatrix) {
+    console.log("Failed to get the storage location of u_ViewMatrix");
+    return false;
+  }
 
-  // Get the storage location of u_Sampler
+  u_ProjectionMatrix = gl.getUniformLocation(gl.program, "u_ProjectionMatrix");
+  if (!u_ProjectionMatrix) {
+    console.log("Failed to get the storage location of u_ProjectionMatrix");
+    return false;
+  }
+
   u_Sampler0 = gl.getUniformLocation(gl.program, "u_Sampler0");
   if (!u_Sampler0) {
     console.log("Failed to get the storage location of u_Sampler0");
     return false;
   }
 
-  // Get the storage location of u_Sampler
   u_Sampler1 = gl.getUniformLocation(gl.program, "u_Sampler1");
   if (!u_Sampler1) {
     console.log("Failed to get the storage location of u_Sampler1");
@@ -191,28 +220,20 @@ function connectVariablesToGLSL() {
 
   u_lightOn = gl.getUniformLocation(gl.program, "u_lightOn");
   if (!u_lightOn) {
-    console.log("Failed to get u_lightOn");
-    return;
+    console.log("Failed to get the storage location of u_lightOn");
+    return false;
   }
 
-  u_cameraPos = gl.getUniformLocation(gl.program, "u_cameraPos");
   u_lightPos = gl.getUniformLocation(gl.program, "u_lightPos");
-  u_spotDirection = gl.getUniformLocation(gl.program, "u_spotDirection");
+  if (!u_lightPos) {
+    console.log("Failed to get the storage location of u_lightPos");
+    return false;
+  }
 
-  if (
-    a_Position < 0 ||
-    a_UV < 0 || // check a_UV too
-    !u_FragColor ||
-    !u_ModelMatrix ||
-    !u_GlobalRotateMatrix ||
-    !u_ViewMatrix ||
-    !u_ProjectionMatrix ||
-    !u_cameraPos ||
-    !u_lightPos ||
-    !u_spotDirection
-  ) {
-    console.log("Failed to get GLSL variable locations");
-    return;
+  u_spotDirection = gl.getUniformLocation(gl.program, "u_spotDirection");
+  if (!u_spotDirection) {
+    console.log("Failed to get the storage location of u_spotDirection");
+    return false;
   }
 
   // Set the initial model matrix to identity
@@ -244,22 +265,43 @@ function addActionsForHtmlUI() {
   });
 }
 
-// Function to animate the jump
-function animateJump() {
-  const currentTime = performance.now() / 1000.0;
-  const elapsedTime = currentTime - g_jumpStartTime;
+function drawSnakeAt(x, y) {
+  const worldX = x - 16;
+  const worldZ = y - 16;
 
-  // Use a parabolic equation for the jump (e.g., -4x^2 + 4x for a smooth jump)
-  if (elapsedTime <= 1.0) {
-    g_snakeJump = -4 * Math.pow(elapsedTime - 0.5, 2) + 1; // Peak at t = 0.5
-    renderScene();
-    requestAnimationFrame(animateJump);
-  } else {
-    // End the jump animation
-    g_snakeJump = 0;
-    g_isJumping = false;
-    renderScene();
-  }
+  const baseMatrix = new Matrix4();
+  baseMatrix.translate(worldX, -0.7, worldZ); // Ground-level
+  baseMatrix.rotate(-5, 1, 0, 0); // Slight tilt
+
+  // Snake Base
+  const base = new Cube();
+  base.color = SNAKE_COLOR;
+  base.textureNum = -2;
+  base.matrix = new Matrix4(baseMatrix);
+  base.matrix.rotate(-5, 1, 0, 0);
+  base.matrix.scale(1.5, 0.3, 0.3);
+  base.render();
+
+  // Body
+  const body = new Cube();
+  body.color = SNAKE_COLOR;
+  body.textureNum = -2;
+  body.matrix = new Matrix4(baseMatrix);
+  body.matrix.scale(0.25, 0.7, 0.25);
+  body.matrix.translate(-0.5, 0, 0.0);
+  body.render();
+
+  // Head
+  const head = new Cube();
+  head.color = SNAKE_COLOR;
+  head.textureNum = -2;
+  head.matrix = new Matrix4(baseMatrix);
+  head.matrix.translate(0, 0.65, 0.0);
+  head.matrix.rotate(-10, 0, 0.0, 1.0);
+  head.matrix.scale(0.3, 0.3, 0.3);
+  head.matrix.translate(-0.5, 0, -0.001);
+  const headMatrix = new Matrix4(head.matrix);
+  head.render();
 }
 
 // Add mouse event listeners
@@ -407,7 +449,10 @@ function drawMap() {
   for (let x = 0; x < 32; x++) {
     for (let y = 0; y < 32; y++) {
       let height = g_map[x][y];
-
+      if (g_map[x][y] === -2) {
+        drawSnakeAt(x, y);
+        continue;
+      }
       if (height === -1) {
         let nugget = new Cube();
         nugget.color = [239 / 255, 191 / 255, 4 / 255, 1.0];
@@ -499,12 +544,6 @@ function renderScene() {
 
   // is night mode on?
   if (nightMode) {
-    gl.uniform3f(
-      u_cameraPos,
-      camera.eye.elements[0],
-      camera.eye.elements[1],
-      camera.eye.elements[2]
-    );
     gl.uniform1i(u_lightOn, true); // enable flashlight
     gl.uniform3f(
       u_lightPos,
