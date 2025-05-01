@@ -5,41 +5,65 @@
 
 // Vertex shader program
 var VSHADER_SOURCE = `
-    precision mediump float;
-    attribute vec4 a_Position;
-    attribute vec2 a_UV;
-    varying vec2 v_UV;
-    uniform mat4 u_ModelMatrix;
-    uniform mat4 u_GlobalRotateMatrix;
-    uniform mat4 u_ViewMatrix;
-    uniform mat4 u_ProjectionMatrix;
-    void main() {
-      gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
-      v_UV = a_UV;
-    }
+  precision mediump float;
+  attribute vec4 a_Position;
+  attribute vec2 a_UV;
+  varying vec2 v_UV;
+  varying vec3 v_Pos;
+
+  uniform mat4 u_ModelMatrix;
+  uniform mat4 u_GlobalRotateMatrix;
+  uniform mat4 u_ViewMatrix;
+  uniform mat4 u_ProjectionMatrix;
+
+  void main() {
+    vec4 worldPos = u_ModelMatrix * a_Position;
+    v_Pos = vec3(worldPos);
+    v_UV = a_UV;
+    gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_GlobalRotateMatrix * worldPos;
+  }
 `;
 
 // Fragment shader program
 const FSHADER_SOURCE = `
-    precision mediump float;
-    varying vec2 v_UV;
-    uniform vec4 u_FragColor;
-    uniform sampler2D u_Sampler0;
-    uniform sampler2D u_Sampler1;
-    uniform int u_whichTexture;
-    void main() {
-      if (u_whichTexture == -2) {
-        gl_FragColor = u_FragColor; // Use color
-      } else if (u_whichTexture == -1) {
-        gl_FragColor = vec4(v_UV, 1.0, 1.0); // Use UV debug color
-      } else if (u_whichTexture == 0) {
-        gl_FragColor = texture2D(u_Sampler0, v_UV); // Use texture0
-      } else if (u_whichTexture == 1) {
-       gl_FragColor = texture2D(u_Sampler1, v_UV); // Use texture1
-      } else{
-        gl_FragColor = vec4(1, 0.2, 0.2, 1); // Error, put Redish
-      }
+  precision mediump float;
+  varying vec2 v_UV;
+  varying vec3 v_Pos;
+
+  uniform vec4 u_FragColor;
+  uniform sampler2D u_Sampler0;
+  uniform sampler2D u_Sampler1;
+  uniform int u_whichTexture;
+
+  uniform bool u_lightOn;
+  uniform vec3 u_lightPos;
+  uniform vec3 u_cameraPos;
+
+  void main() {
+    vec4 baseColor;
+    if (u_whichTexture == -2) {
+      baseColor = u_FragColor;
+    } else if (u_whichTexture == -1) {
+      baseColor = vec4(v_UV, 1.0, 1.0);
+    } else if (u_whichTexture == 0) {
+      baseColor = texture2D(u_Sampler0, v_UV);
+    } else if (u_whichTexture == 1) {
+      baseColor = texture2D(u_Sampler1, v_UV);
+    } else {
+      baseColor = vec4(1.0, 0.2, 0.2, 1.0);
     }
+
+    // Default ambient
+    vec3 color = baseColor.rgb * (u_lightOn ? 0.1 : 0.5);
+
+    if (u_lightOn) {
+      float dist = length(v_Pos - u_lightPos);
+      float intensity = clamp(1.0 / (dist * dist), 0.0, 1.0);
+      color += baseColor.rgb * intensity;
+    }
+
+    gl_FragColor = vec4(color, baseColor.a);
+  }
 `;
 
 const SNAKE_COLOR = [6 / 255, 100 / 255, 70 / 255, 1];
@@ -57,7 +81,9 @@ let canvas,
   u_Sampler0,
   u_Sampler1,
   u_whichTexture,
-  u_lightOn;
+  u_lightOn,
+  u_cameraPos,
+  u_lightPos;
 
 // UI-controlled globals
 let g_yellowAngle = 0;
@@ -155,6 +181,9 @@ function connectVariablesToGLSL() {
     console.log("Failed to get u_lightOn");
     return;
   }
+
+  u_cameraPos = gl.getUniformLocation(gl.program, "u_cameraPos");
+  u_lightPos = gl.getUniformLocation(gl.program, "u_lightPos");
 
   if (
     a_Position < 0 ||
@@ -453,6 +482,12 @@ function renderScene() {
 
   // is night mode on?
   if (nightMode) {
+    gl.uniform3f(
+      u_cameraPos,
+      camera.eye.elements[0],
+      camera.eye.elements[1],
+      camera.eye.elements[2]
+    );
     gl.uniform1i(u_lightOn, true); // enable flashlight
     gl.uniform3f(
       u_lightPos,
@@ -460,7 +495,6 @@ function renderScene() {
       camera.eye.elements[1],
       camera.eye.elements[2]
     );
-    gl.uniform3f(u_lightColor, 1.0, 1.0, 1.0); // white light
   } else {
     gl.uniform1i(u_lightOn, false); // disable flashlight
   }
