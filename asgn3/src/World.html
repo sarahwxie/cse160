@@ -17,36 +17,46 @@
         justify-content: center;
         min-height: 100vh;
         background-color: #f8f9fa;
-        font-family: monospace; /* Apply monospace font to all text */
+        font-family: monospace;
+      }
+      .container {
+        display: flex;
+        width: 100%;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .left-column {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+      }
+      .right-column {
+        width: 250px;
+        display: flex;
+        flex-direction: column; /* Stack items vertically */
+        align-items: flex-start; /* Align items to the left */
+        justify-content: flex-start; /* Start content at the top */
+        background-color: #e9ecef;
+        border-left: 1px solid #dee2e6;
+        padding: 10px;
       }
       canvas {
         border: 1px solid #dee2e6;
-        margin-bottom: 20px;
       }
       .btn {
-        background-color: #00008b !important; /* Dark blue button color */
-        border-color: #00008b !important;
-        color: white !important;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        margin: 5px;
+        transition: background-color 0.2s ease;
+        background-color: #00008b;
+        color: white;
       }
-      .slider {
-        margin: 10px 0;
-        border: 2px solid #dee2e6; /* Add border to sliders */
-        border-radius: 5px; /* Optional: Add rounded corners */
-        padding: 2px; /* Optional: Add padding for better appearance */
-        width: 100%; /* Make sliders take up full width */
-        accent-color: #00008b; /* Change slider thumb and track color */
+
+      .btn:hover {
+        background-color: lightblue; /* Slightly lighter blue for hover */
       }
-      .slider-container {
-        display: flex;
-        align-items: center;
-        width: 100%;
-        margin-bottom: 15px;
-      }
-      .slider-label {
-        margin-right: 10px;
-        white-space: nowrap;
+
+      .btn:active {
+        background-color: green; /* Slightly darker blue for click */
       }
     </style>
 
@@ -69,14 +79,70 @@
 
   <body onload="main()">
     <h1 class="text-center mb-4" style="padding-top: 10vh">Asgn3: World</h1>
-    <canvas id="webgl" width="600" height="600">
-      Please use a browser that supports "canvas"
-    </canvas>
+    <div class="container">
+      <div class="left-column">
+        <canvas id="webgl" width="600" height="600">
+          Please use a browser that supports "canvas"
+        </canvas>
+        <div
+          id="nuggetOverlay"
+          style="
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 4px;
+            z-index: 1000;
+            pointer-events: none;
+            background-color: #ffffff;
+          "
+        >
+          gold nuggets: <span id="nuggetCount">0</span>
+        </div>
+      </div>
+      <div class="right-column">
+        <h5>Instructions</h5>
+        <p>Get all 20 gold nuggets to win!</p>
+        <hr
+          style="
+            border: 1px solid grey;
+            width: 100%;
+            margin-bottom: 10px;
+            margin-top: 10px;
+          "
+        />
+        <h5>Controls</h5>
+        <p>Click into the game to start. ESC to free your mouse</p>
+        <p>WASD to Move</p>
+        <p>Q/E or Mouse for Camera Control</p>
+        <p>Z/X to place/remove blocks</p>
+        <hr
+          style="
+            border: 1px solid grey;
+            width: 100%;
+            margin-bottom: 10px;
+            margin-top: 10px;
+          "
+        />
+        <h5>Extra</h5>
+        <p>Scroll down for more info!</p>
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+          "
+        >
+          <button class="btn">Day</button>
+          <button class="btn">Night</button>
+        </div>
+      </div>
+    </div>
 
     <hr
       style="
         border: 1px solid grey;
-        width: 60%;
+        width: 80%;
         margin-bottom: 50px;
         margin-top: 50px;
       "

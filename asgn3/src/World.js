@@ -90,6 +90,9 @@ var g_eye = [0, 0, 3];
 var g_at = [0, 0, -100];
 var g_up = [0, 1, 0];
 
+// game mechanics
+let nuggetCount = 0;
+
 // Set up WebGL context and enable transparency
 function setupWebGL() {
   canvas = document.getElementById("webgl");
@@ -332,14 +335,23 @@ function drawMap() {
   for (let x = 0; x < 32; x++) {
     for (let y = 0; y < 32; y++) {
       let height = g_map[x][y];
+
+      if (height === -1) {
+        let nugget = new Cube();
+        nugget.color = [239 / 255, 191 / 255, 4 / 255, 1.0];
+        nugget.textureNum = -2; // solid color, change if using texture
+        nugget.matrix.translate(x - 16, 0.2, y - 16); // position it slightly above the ground
+        nugget.matrix.scale(0.2, 0.2, 0.2); // smaller size
+        nugget.matrix.translate(-0.5, 0, -0.5); // center the cube
+        nugget.renderFast();
+        continue;
+      }
+
       if (height !== 0) {
         for (let h = 0; h < height; h++) {
           let block = new Cube();
           block.color = [0.8, 1.0, 0.1, 1.0];
           block.textureNum = 0;
-
-          // Scale first (affects cube size)
-          // block.matrix.scale(0.3, 0.3, 0.3);
 
           // Then translate (after scale!)
           // Each cube is stacked by translating 1 unit up in cube space (0.3 world units)
@@ -353,6 +365,11 @@ function drawMap() {
       }
     }
   }
+}
+
+function addGoldNugget() {
+  nuggetCount++;
+  document.getElementById("nuggetCount").textContent = nuggetCount;
 }
 
 function getForwardBlockCoords() {
@@ -417,8 +434,8 @@ function renderScene() {
   var sky = new Cube();
   sky.color = [135 / 255, 206 / 255, 235 / 255, 1];
   sky.textureNum = 1;
-  sky.matrix.scale(50, 50, 50);
-  sky.matrix.translate(-0.5, -0.5, -0.5); // Center the box
+  sky.matrix.scale(100, 100, 100);
+  sky.matrix.translate(-0.5, -0.4, -0.5); // Center the box
   sky.renderFast();
 
   // draw the map
