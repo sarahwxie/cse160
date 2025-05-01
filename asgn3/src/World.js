@@ -178,27 +178,40 @@ function animateJump() {
 
 // Add mouse event listeners
 function addMouseControl() {
-  canvas.addEventListener("mousemove", (event) => {
-    const deltaX =
-      event.movementX ||
-      event.mozMovementX ||
-      event.webkitMovementX ||
-      event.clientX - lastMouseX;
-    const deltaY =
-      event.movementY ||
-      event.mozMovementY ||
-      event.webkitMovementY ||
-      event.clientY - lastMouseY;
+  // escape pointer lock
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      document.exitPointerLock();
+    }
+  });
 
-    const yaw = deltaX * 0.3; // Left/right
-    const pitch = deltaY * 0.3; // Up/down
+  // Lock pointer on click
+  canvas.addEventListener("click", () => {
+    canvas.requestPointerLock =
+      canvas.requestPointerLock ||
+      canvas.mozRequestPointerLock ||
+      canvas.webkitRequestPointerLock;
+    canvas.requestPointerLock();
+  });
 
-    camera.rotate(yaw, pitch);
+  // Handle mouse movement when pointer is locked
+  document.addEventListener("mousemove", (event) => {
+    if (
+      document.pointerLockElement === canvas ||
+      document.mozPointerLockElement === canvas ||
+      document.webkitPointerLockElement === canvas
+    ) {
+      const deltaX =
+        event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+      const deltaY =
+        event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 
-    lastMouseX = event.clientX;
-    lastMouseY = event.clientY;
+      const yaw = deltaX * 0.3;
+      const pitch = deltaY * 0.3;
 
-    renderScene();
+      camera.rotate(yaw, pitch);
+      renderScene();
+    }
   });
 }
 
