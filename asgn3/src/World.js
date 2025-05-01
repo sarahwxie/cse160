@@ -274,7 +274,7 @@ function initTextures() {
     sendImageToTEXTURE0(image);
   };
   // Tell the browser to load an image
-  image.src = "sky.jpg";
+  image.src = "dirt.jpg";
 
   return true;
 }
@@ -307,7 +307,7 @@ function main() {
   setupWebGL();
   connectVariablesToGLSL();
   addActionsForHtmlUI();
-  // addMouseControl();
+  addMouseControl();
 
   camera = new Camera();
 
@@ -358,24 +358,13 @@ function keydown(ev) {
   renderScene();
 }
 
-var g_map = [
-  [1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 1, 0, 1],
-  [1, 0, 0, 0, 0, 1, 1, 1],
-];
-
 function drawMap() {
-  for (x = 0; x < 32; x++) {
-    for (y = 0; y < 32; y++) {
-      // console.log(x, y);
-      if (x == 0 || x == 31 || y == 0 || y == 31) {
+  for (let x = 0; x < 32; x++) {
+    for (let y = 0; y < 32; y++) {
+      if (g_map[x][y] !== 0) {
         var body = new Cube();
         body.color = [0.8, 1.0, 0.1, 1.0];
+        body.textureNum = 0;
         body.matrix.translate(0, -0.75, 0);
         body.matrix.scale(0.3, 0.3, 0.3);
         body.matrix.translate(x - 16, 0, y - 16);
@@ -384,6 +373,7 @@ function drawMap() {
     }
   }
 }
+
 // Render all objects in the scene
 function renderScene() {
   // Pass the projection matrix
@@ -416,10 +406,10 @@ function renderScene() {
 
   // Draw the floor
   var floor = new Cube();
-  floor.color = [1, 0, 0, 0.0, 1.0];
-  floor.textureNum = 0;
+  floor.color = [82 / 255, 105 / 255, 53 / 255, 1.0];
+  floor.textureNum = -2;
   floor.matrix.translate(0, -0.75, 0.0);
-  floor.matrix.scale(10, 0.01, 10);
+  floor.matrix.scale(11, 0.01, 11);
   floor.matrix.translate(-0.5, 0, -0.5);
   floor.renderFast();
 
@@ -430,46 +420,6 @@ function renderScene() {
   sky.matrix.scale(50, 50, 50);
   sky.matrix.translate(-0.5, -0.5, -0.5); // Center the box
   sky.renderFast();
-
-  // Snake Base
-  const body = new Cube();
-  body.color = SNAKE_COLOR;
-  body.textureNum = 0;
-  body.matrix.translate(-0.1, -0.75 + g_snakeJump, 0.0);
-  body.matrix.rotate(-5, 1, 0, 0);
-  body.matrix.scale(1.5, 0.3, 0.3);
-  body.renderFast();
-
-  // snake body
-  const leftArm = new Cube();
-  leftArm.color = SNAKE_COLOR;
-  leftArm.matrix.setTranslate(0, -0.5 + g_snakeJump, 0.0);
-  leftArm.matrix.rotate(-5, 1, 0, 0);
-  leftArm.matrix.rotate(-g_yellowAngle, 0, 0, 1);
-  const yellowCoordinatesMat = new Matrix4(leftArm.matrix);
-  leftArm.matrix.scale(0.25, 0.7, 0.25);
-  leftArm.matrix.translate(-0.5, 0, 0.0);
-  leftArm.renderFast();
-
-  // snake head
-  const box = new Cube();
-  box.color = SNAKE_COLOR;
-  box.matrix = yellowCoordinatesMat;
-  box.matrix.translate(0, 0.65, 0.0);
-  box.matrix.rotate(-g_magAngle, 0, 0.0, 1.0);
-  box.matrix.scale(0.3, 0.3, 0.3);
-  box.matrix.translate(-0.5, 0, -0.001);
-  const headCoordinatesMat = new Matrix4(box.matrix); // Save head matrix for tongue
-  box.renderFast();
-
-  // Snake tongue
-  const tongue = new Pyramid();
-  tongue.color = [1.0, 0.0, 0.0, 1.0];
-  tongue.matrix = headCoordinatesMat;
-  tongue.matrix.rotate(-90, 0, 1, 0);
-  tongue.matrix.translate(0.35, 0.2, 0);
-  tongue.matrix.scale(0.2, 0.2, g_toungueLen);
-  tongue.render();
 
   // draw the map
   drawMap();
