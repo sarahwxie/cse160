@@ -91,6 +91,7 @@ var g_at = [0, 0, -100];
 var g_up = [0, 1, 0];
 
 // game mechanics
+let nuggetsToWin = 20;
 let nuggetCount = 0;
 
 // Set up WebGL context and enable transparency
@@ -169,7 +170,11 @@ function connectVariablesToGLSL() {
 
 // Set up HTML UI event handlers
 function addActionsForHtmlUI() {
-  // currently no HTML buttons for Minecraft
+  document.getElementById("debugBtn").addEventListener("click", () => {
+    nuggetsToWin = 3;
+    document.querySelector(".right-column p").textContent =
+      "Get 3 gold nuggets to win! (Debug Mode)";
+  });
 }
 
 // Function to animate the jump
@@ -370,6 +375,10 @@ function drawMap() {
 function addGoldNugget() {
   nuggetCount++;
   document.getElementById("nuggetCount").textContent = nuggetCount;
+
+  if (nuggetCount >= nuggetsToWin) {
+    document.getElementById("winOverlay").style.display = "flex";
+  }
 }
 
 function getForwardBlockCoords() {
@@ -437,6 +446,26 @@ function renderScene() {
   sky.matrix.scale(100, 100, 100);
   sky.matrix.translate(-0.5, -0.4, -0.5); // Center the box
   sky.renderFast();
+
+  // nugget pickup logic
+  for (let x = 0; x < 32; x++) {
+    for (let y = 0; y < 32; y++) {
+      if (g_map[x][y] === -1) {
+        const nuggetWorldX = x - 16;
+        const nuggetWorldZ = y - 16;
+
+        const dx = camera.eye.elements[0] - nuggetWorldX;
+        const dz = camera.eye.elements[2] - nuggetWorldZ;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+
+        if (dist < 0.5) {
+          // Within pickup radius
+          g_map[x][y] = 0; // Remove nugget
+          addGoldNugget(); // Increment counter
+        }
+      }
+    }
+  }
 
   // draw the map
   drawMap();

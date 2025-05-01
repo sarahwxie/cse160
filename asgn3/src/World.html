@@ -98,6 +98,27 @@
         >
           gold nuggets: <span id="nuggetCount">0</span>
         </div>
+        <div
+          id="winOverlay"
+          style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: white;
+            font-size: 3rem;
+            font-weight: bold;
+            pointer-events: none;
+          "
+        >
+          YOU WIN!
+        </div>
       </div>
       <div class="right-column">
         <h5>Instructions</h5>
@@ -142,25 +163,38 @@
     <hr
       style="
         border: 1px solid grey;
-        width: 80%;
+        width: 60%;
         margin-bottom: 50px;
+        margin-top: 50px;
+      "
+    />
+    <button class="btn" id="debugBtn">
+      debug win-screen: reduce "nuggets-to-win" down to 3
+    </button>
+    <hr
+      style="
+        border: 1px solid grey;
+        width: 60%;
+        margin-bottom: 20px;
         margin-top: 50px;
       "
     />
     <div
       class="mt-5 d-flex align-items-center justify-content-center"
-      style="padding-bottom: 10vh"
+      style="padding-bottom: 14vh"
     >
       <div class="text-center" style="margin-left: 20px">
-        <h2>Extra point explanations:</h2>
+        <h2>--- Point Explanations ---</h2>
         <ul class="list-unstyled text-start">
-          <li>• Colored Snake</li>
-          <li>• Animated animal, snake-like movements</li>
-          <li>• Third Joint (Toungue)</li>
-          <li>• Non-cube primative: Toungue is Pyramid</li>
-          <li>• Poke = Jump</li>
-          <li>• Mouse Rotation</li>
-          <li>• Performance Optimized</li>
+          <li>
+            • All mouse/key controls, textures, camera, worldbuilding
+            implemented.
+          </li>
+          <li>• Story: Collect gold nuggets to win</li>
+          <li>
+            • Wow factor: day/night mode, where "night mode" is dark with a
+            flashlight
+          </li>
         </ul>
       </div>
     </div>
