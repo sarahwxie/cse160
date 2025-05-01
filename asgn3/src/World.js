@@ -155,49 +155,7 @@ function connectVariablesToGLSL() {
 
 // Set up HTML UI event handlers
 function addActionsForHtmlUI() {
-  document.getElementById("aniOff").onclick = () => (g_yellowAnimation = false);
-  document.getElementById("aniOn").onclick = () => (g_yellowAnimation = true);
-
-  document.getElementById("magAniOff").onclick = () =>
-    (g_magentaAnimation = false);
-  document.getElementById("magAniOn").onclick = () =>
-    (g_magentaAnimation = true);
-
-  document.getElementById("tOff").onclick = () => (g_toungueAnimation = false);
-  document.getElementById("tOn").onclick = () => (g_toungueAnimation = true);
-
-  document
-    .getElementById("angleSlide")
-    .addEventListener("mousemove", function () {
-      g_yRotation = this.value;
-      renderScene();
-    });
-
-  document
-    .getElementById("angleSlideY")
-    .addEventListener("mousemove", function () {
-      g_xRotation = this.value;
-      renderScene();
-    });
-
-  document
-    .getElementById("yellowAngle")
-    .addEventListener("mousemove", function () {
-      g_yellowAngle = this.value;
-      renderScene();
-    });
-
-  document
-    .getElementById("magAngle")
-    .addEventListener("mousemove", function () {
-      g_magAngle = this.value;
-      renderScene();
-    });
-
-  document.getElementById("tLen").addEventListener("mousemove", function () {
-    g_toungueLen = this.value;
-    renderScene();
-  });
+  // currently no HTML buttons for Minecraft
 }
 
 // Function to animate the jump
@@ -220,45 +178,27 @@ function animateJump() {
 
 // Add mouse event listeners
 function addMouseControl() {
-  canvas.addEventListener("mousedown", (event) => {
-    if (event.shiftKey && !g_isJumping) {
-      // Start the jump animation
-      g_isJumping = true;
-      g_jumpStartTime = performance.now() / 1000.0; // Record the start time
-      animateJump();
-    } else {
-      isMouseDown = true;
-      lastMouseX = event.clientX;
-      lastMouseY = event.clientY;
-    }
-  });
-
   canvas.addEventListener("mousemove", (event) => {
-    if (isMouseDown) {
-      const deltaX = event.clientX - lastMouseX;
-      const deltaY = event.clientY - lastMouseY;
+    const deltaX =
+      event.movementX ||
+      event.mozMovementX ||
+      event.webkitMovementX ||
+      event.clientX - lastMouseX;
+    const deltaY =
+      event.movementY ||
+      event.mozMovementY ||
+      event.webkitMovementY ||
+      event.clientY - lastMouseY;
 
-      // Map mouse movement to rotation angles
-      g_yRotation += deltaX * 0.5;
-      g_xRotation += deltaY * 0.5;
+    const yaw = deltaX * 0.3; // Left/right
+    const pitch = deltaY * 0.3; // Up/down
 
-      // Normalize rotation values to stay within 0-360 degrees
-      g_yRotation = g_yRotation % 360;
-      g_xRotation = Math.max(-90, Math.min(90, g_xRotation));
+    camera.rotate(yaw, pitch);
 
-      lastMouseX = event.clientX;
-      lastMouseY = event.clientY;
+    lastMouseX = event.clientX;
+    lastMouseY = event.clientY;
 
-      renderScene();
-    }
-  });
-
-  canvas.addEventListener("mouseup", () => {
-    isMouseDown = false;
-  });
-
-  canvas.addEventListener("mouseleave", () => {
-    isMouseDown = false;
+    renderScene();
   });
 }
 
@@ -408,10 +348,7 @@ function renderScene() {
   gl.uniformMatrix4fv(u_ViewMatrix, false, viewMat.elements);
 
   // ------------------
-  const globalRotMatrix = new Matrix4()
-    .rotate(g_yRotation, 0, 1, 0) // Rotate around y-axis
-    .rotate(g_xRotation, 1, 0, 0); // Rotate around x-axis
-  gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, globalRotMatrix.elements);
+  gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, new Matrix4().elements); // identity
 
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 

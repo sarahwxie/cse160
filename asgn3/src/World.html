@@ -69,88 +69,9 @@
 
   <body onload="main()">
     <h1 class="text-center mb-4" style="padding-top: 10vh">Asgn3: World</h1>
-    <canvas id="webgl" width="400" height="400">
+    <canvas id="webgl" width="600" height="600">
       Please use a browser that supports "canvas"
     </canvas>
-
-    <div class="d-flex flex-column align-items-center w-50">
-      <div class="slider-container">
-        <label for="angleSlide" class="form-label slider-label"
-          >Camera Angle (x)</label
-        >
-        <input
-          type="range"
-          id="angleSlide"
-          name="angleSlide"
-          min="-180"
-          max="180"
-          class="form-range slider"
-        />
-      </div>
-
-      <div class="slider-container">
-        <label for="angleSlideY" class="form-label slider-label"
-          >Camera Angle (y)</label
-        >
-        <input
-          type="range"
-          id="angleSlideY"
-          name="angleSlideY"
-          min="-180"
-          max="180"
-          class="form-range slider"
-        />
-      </div>
-
-      <div class="slider-container">
-        <label for="yellowAngle" class="form-label slider-label"
-          >Body Angle</label
-        >
-        <input
-          type="range"
-          id="yellowAngle"
-          name="yellowAngle"
-          min="-45"
-          max="45"
-          class="form-range slider"
-        />
-        <button type="button" id="aniOn" class="btn">On</button>
-        <button type="button" id="aniOff" class="btn">Off</button>
-      </div>
-
-      <div class="slider-container">
-        <label for="magAngle" class="form-label slider-label">
-          Head Angle</label
-        >
-        <input
-          type="range"
-          id="magAngle"
-          name="magAngle"
-          min="-45"
-          max="45"
-          class="form-range slider"
-        />
-        <button type="button" id="magAniOn" class="btn">On</button>
-        <button type="button" id="magAniOff" class="btn">Off</button>
-      </div>
-
-      <div class="slider-container">
-        <label for="magAngle" class="form-label slider-label">
-          Toungue Length</label
-        >
-        <input
-          type="range"
-          id="tLen"
-          name="tLen"
-          min="0.7"
-          max="1.2"
-          step="0.01"
-          class="form-range slider"
-        />
-        <button type="button" id="tOn" class="btn">On</button>
-        <button type="button" id="tOff" class="btn">Off</button>
-      </div>
-    </div>
 
     <hr
       style="
