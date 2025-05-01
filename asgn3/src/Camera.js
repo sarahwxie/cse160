@@ -1,8 +1,8 @@
 class Camera {
   constructor() {
     console.log("Camera constructor");
-    this.at = new Vector3([0, 0, -100]);
-    this.eye = new Vector3([0, 0, 3]);
+    this.at = new Vector3([0, 2, -100]);
+    this.eye = new Vector3([0, 2, 3]);
     this.up = new Vector3([0, 1, 0]);
     this.step = 0.2; // movement step size
   }

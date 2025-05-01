@@ -289,27 +289,41 @@ function updateAnimationAngles() {
 
 function keydown(ev) {
   switch (ev.key.toLowerCase()) {
-    case "w": // Move forward
+    case "w":
       camera.forward();
       break;
-    case "s": // Move backward
+    case "s":
       camera.back();
       break;
-    case "a": // Move left
+    case "a":
       camera.left();
       break;
-    case "d": // Move right
+    case "d":
       camera.right();
       break;
-    case "q": // Rotate camera left
+    case "q":
       camera.rotate(-5, 0);
       break;
-    case "e": // Rotate camera right
+    case "e":
       camera.rotate(5, 0);
       break;
+
+    case "z": {
+      // Add block
+      let [x, y] = getForwardBlockCoords();
+      if (g_map[x][y] < 10) g_map[x][y]++; // Max height cap
+      break;
+    }
+    case "x": {
+      // Remove block
+      let [x, y] = getForwardBlockCoords();
+      if (g_map[x][y] > 0) g_map[x][y]--;
+      break;
+    }
+
     default:
       console.log(`Unhandled key: ${ev.key}`);
-      return; // Exit if the key is not handled
+      return;
   }
   renderScene();
 }
@@ -325,20 +339,42 @@ function drawMap() {
           block.textureNum = 0;
 
           // Scale first (affects cube size)
-          block.matrix.scale(0.3, 0.3, 0.3);
+          // block.matrix.scale(0.3, 0.3, 0.3);
 
           // Then translate (after scale!)
           // Each cube is stacked by translating 1 unit up in cube space (0.3 world units)
           block.matrix.translate(x - 16, h, y - 16);
 
           // Offset Y position by -0.75 / 0.3 = -2.5 blocks to touch the floor
-          block.matrix.translate(0, -2.5, 0);
+          block.matrix.translate(0, -0.75, 0);
 
           block.renderFast();
         }
       }
     }
   }
+}
+
+function getForwardBlockCoords() {
+  // Direction the camera is facing
+  let dir = new Vector3(camera.at.elements);
+  dir.sub(camera.eye);
+  dir.normalize();
+  dir.mul(2); // Step forward 2 units instead of 1
+
+  // Compute the target position two units ahead
+  let target = new Vector3(camera.eye.elements);
+  target.add(dir);
+
+  // Map coordinates
+  let x = Math.floor(target.elements[0]) + 16;
+  let y = Math.floor(target.elements[2]) + 16;
+
+  // Clamp within bounds
+  x = Math.max(0, Math.min(31, x));
+  y = Math.max(0, Math.min(31, y));
+
+  return [x, y];
 }
 
 // Render all objects in the scene
@@ -373,7 +409,7 @@ function renderScene() {
   floor.color = [82 / 255, 105 / 255, 53 / 255, 1.0];
   floor.textureNum = -2;
   floor.matrix.translate(0, -0.75, 0.0);
-  floor.matrix.scale(11, 0.01, 11);
+  floor.matrix.scale(32, 0.01, 32);
   floor.matrix.translate(-0.5, 0, -0.5);
   floor.renderFast();
 
