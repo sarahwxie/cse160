@@ -38,6 +38,7 @@ const FSHADER_SOURCE = `
   uniform bool u_lightOn;
   uniform vec3 u_lightPos;
   uniform vec3 u_cameraPos;
+  uniform vec3 u_spotDirection;
 
   void main() {
     vec4 baseColor;
@@ -53,13 +54,25 @@ const FSHADER_SOURCE = `
       baseColor = vec4(1.0, 0.2, 0.2, 1.0);
     }
 
-    // Default ambient
-    vec3 color = baseColor.rgb * (u_lightOn ? 0.1 : 0.5);
+    vec3 color;
 
-    if (u_lightOn) {
+    if (!u_lightOn) {
+      // DAY MODE: use base color without lighting
+      color = baseColor.rgb;
+    } else {
+      // NIGHT MODE: dim ambient + flashlight effect
+      vec3 L = normalize(u_lightPos - v_Pos);
+      vec3 D = normalize(-u_spotDirection);           // Light is shining in this direction
+      float theta = dot(L, D);                        // How aligned the fragment is
+
+      float cutoff = cos(radians(12.0));              // spotlight cutoff angle
+      float epsilon = 0.1;
+      float spotEffect = smoothstep(cutoff - epsilon, cutoff, theta);
+
       float dist = length(v_Pos - u_lightPos);
-      float intensity = clamp(1.0 / (dist * dist), 0.0, 1.0);
-      color += baseColor.rgb * intensity;
+      float intensity = clamp(5.0 / (dist * dist + 0.1), 0.0, 1.0);
+
+      color = baseColor.rgb * 0.05 + baseColor.rgb * intensity * spotEffect;
     }
 
     gl_FragColor = vec4(color, baseColor.a);
@@ -184,6 +197,7 @@ function connectVariablesToGLSL() {
 
   u_cameraPos = gl.getUniformLocation(gl.program, "u_cameraPos");
   u_lightPos = gl.getUniformLocation(gl.program, "u_lightPos");
+  u_spotDirection = gl.getUniformLocation(gl.program, "u_spotDirection");
 
   if (
     a_Position < 0 ||
@@ -192,7 +206,10 @@ function connectVariablesToGLSL() {
     !u_ModelMatrix ||
     !u_GlobalRotateMatrix ||
     !u_ViewMatrix ||
-    !u_ProjectionMatrix
+    !u_ProjectionMatrix ||
+    !u_cameraPos ||
+    !u_lightPos ||
+    !u_spotDirection
   ) {
     console.log("Failed to get GLSL variable locations");
     return;
@@ -494,6 +511,15 @@ function renderScene() {
       camera.eye.elements[0],
       camera.eye.elements[1],
       camera.eye.elements[2]
+    );
+    const dir = new Vector3(camera.at.elements);
+    dir.sub(camera.eye);
+    dir.normalize();
+    gl.uniform3f(
+      u_spotDirection,
+      dir.elements[0],
+      dir.elements[1],
+      dir.elements[2]
     );
   } else {
     gl.uniform1i(u_lightOn, false); // disable flashlight
