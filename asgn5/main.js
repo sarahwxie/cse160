@@ -15,17 +15,28 @@ function main() {
 
   const scene = new THREE.Scene();
 
-  // Set the sky color
-  scene.background = new THREE.Color(0x86aab5); // Updated sky color
+  // Load the skybox textures
+  const loader = new THREE.CubeTextureLoader();
+  const skyboxTexture = loader.load([
+    "./textures/sky/skybox_nz.jpg", // Right
+    "./textures/sky/skybox_pz.jpg", // Left
+    "./textures/sky/skybox_py.jpg", // Top
+    "./textures/sky/skybox_ny.jpg", // Bottom
+    "./textures/sky/skybox_nx.jpg", // Front
+    "./textures/sky/skybox_px.jpg", // Back
+  ]);
+
+  // Set the skybox as the scene's background
+  scene.background = skyboxTexture;
 
   // Load the grass texture
   const textureLoader = new THREE.TextureLoader();
   const grassTexture = textureLoader.load("./textures/grass.jpg");
 
-  // Set the texture to repeat
+  // Set the texture to zoom in
   grassTexture.wrapS = THREE.RepeatWrapping;
   grassTexture.wrapT = THREE.RepeatWrapping;
-  grassTexture.repeat.set(10, 10); // Repeat the texture 10 times in both directions
+  grassTexture.repeat.set(5, 5);
 
   // Create the ground
   const groundGeometry = new THREE.PlaneGeometry(50, 50);
