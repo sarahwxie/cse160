@@ -15,15 +15,15 @@ function main() {
 
   const scene = new THREE.Scene();
 
-  // Load the skybox textures
+  // Load the skybox textures in the correct order for Three.js
   const loader = new THREE.CubeTextureLoader();
   const skyboxTexture = loader.load([
-    "./textures/sky/skybox_nz.jpg", // Right
-    "./textures/sky/skybox_pz.jpg", // Left
-    "./textures/sky/skybox_py.jpg", // Top
-    "./textures/sky/skybox_ny.jpg", // Bottom
-    "./textures/sky/skybox_nx.jpg", // Front
-    "./textures/sky/skybox_px.jpg", // Back
+    "./textures/skybox/skybox_px.jpg", // Right (+X)
+    "./textures/skybox/skybox_nx.jpg", // Left (-X)
+    "./textures/skybox/skybox_py.jpg", // Top (+Y)
+    "./textures/skybox/skybox_ny.jpg", // Bottom (-Y)
+    "./textures/skybox/skybox_pz.jpg", // Front (+Z)
+    "./textures/skybox/skybox_nz.jpg", // Back (-Z)
   ]);
 
   // Set the skybox as the scene's background
@@ -36,7 +36,7 @@ function main() {
   // Set the texture to zoom in
   grassTexture.wrapS = THREE.RepeatWrapping;
   grassTexture.wrapT = THREE.RepeatWrapping;
-  grassTexture.repeat.set(5, 5);
+  grassTexture.repeat.set(10, 10);
 
   // Create the ground
   const groundGeometry = new THREE.PlaneGeometry(50, 50);
