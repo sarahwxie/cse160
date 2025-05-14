@@ -4,6 +4,8 @@ import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/
 import { EffectComposer } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/postprocessing/RenderPass.js";
 import { OutlinePass } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/postprocessing/OutlinePass.js";
+import { ShaderPass } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/postprocessing/ShaderPass.js";
+import { GammaCorrectionShader } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/shaders/GammaCorrectionShader.js";
 
 const BALL_SIZES = {
   beachBall: 2,
@@ -638,7 +640,7 @@ function drawStaticScene(scene, textures) {
 
 function setupLights(scene) {
   // Add a stronger directional light
-  const light = new THREE.DirectionalLight(0xffffff, 0.4);
+  const light = new THREE.DirectionalLight(0xffffff, 0.3);
   light.position.set(13, 20, 13);
   light.castShadow = true; // Enable shadow casting
 
@@ -654,7 +656,7 @@ function setupLights(scene) {
   scene.add(light);
 
   // Add a softer ambient light
-  const ambientLight = new THREE.AmbientLight(0x404040, 1.0); // Reduced intensity to 0.5
+  const ambientLight = new THREE.AmbientLight(0x404040, 0.3); // Reduced intensity to 0.5
   scene.add(ambientLight);
 
   // Add a hemisphere light
@@ -781,6 +783,9 @@ function main() {
   outlinePass.visibleEdgeColor.set(0xffff00); // Yellow outline
   outlinePass.hiddenEdgeColor.set(0x000000); // Hidden edges are black
   composer.addPass(outlinePass);
+
+  const gammaCorrectionPass = new ShaderPass(GammaCorrectionShader);
+  composer.addPass(gammaCorrectionPass);
 
   // Start rendering
   render(renderer, scene, camera, controls, textures, composer, outlinePass);
