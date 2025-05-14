@@ -214,6 +214,50 @@ function addPicnicBasket(scene) {
   );
 }
 
+function addLantern(scene) {
+  const loader = new GLTFLoader();
+  loader.load(
+    "./models/lantern.glb", // Path to the lantern model
+    (gltf) => {
+      const model = gltf.scene;
+      model.position.set(8, 1, 5); // Position the lantern
+      model.scale.set(0.01, 0.01, 0.01); // Scale the lantern
+      model.rotation.y = Math.PI / 4; // Rotate the lantern if needed
+
+      // Enable shadows for all meshes in the model
+      model.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = true; // Enable casting shadows
+          child.receiveShadow = true; // Enable receiving shadows
+        }
+      });
+
+      // Add a point light to the lantern
+      const lanternLight = new THREE.PointLight(0xffd700, 1, 10); // Warm yellow light
+      lanternLight.position.set(8, 1.5, 5); // Slightly above the lantern
+      lanternLight.castShadow = true; // Enable shadow casting
+
+      // Configure shadow properties
+      lanternLight.shadow.mapSize.width = 512; // Shadow map resolution
+      lanternLight.shadow.mapSize.height = 512;
+      lanternLight.shadow.camera.near = 0.1; // Near clipping plane
+      lanternLight.shadow.camera.far = 20; // Far clipping plane
+
+      scene.add(lanternLight); // Add the light to the scene
+      scene.add(model); // Add the lantern model to the scene
+
+      console.log("Lantern model and light loaded successfully!");
+    },
+    undefined,
+    (error) => {
+      console.error(
+        "An error occurred while loading the lantern model:",
+        error
+      );
+    }
+  );
+}
+
 function addCheckerPieces(scene, board) {
   const boardSize = 5;
   const numSquares = 8;
@@ -593,7 +637,7 @@ function drawStaticScene(scene, textures) {
 
 function setupLights(scene) {
   // Add a stronger directional light
-  const light = new THREE.DirectionalLight(0xffffff, 0.5);
+  const light = new THREE.DirectionalLight(0xffffff, 0.3);
   light.position.set(13, 20, 13);
   light.castShadow = true; // Enable shadow casting
 
@@ -609,7 +653,7 @@ function setupLights(scene) {
   scene.add(light);
 
   // Add a softer ambient light
-  const ambientLight = new THREE.AmbientLight(0x404040, 1.5); // Reduced intensity to 0.5
+  const ambientLight = new THREE.AmbientLight(0x404040, 0.5); // Reduced intensity to 0.5
   scene.add(ambientLight);
 
   // Add a hemisphere light
@@ -665,6 +709,7 @@ function main() {
   // Load custom models
   addTrees(scene);
   addPicnicBasket(scene);
+  addLantern(scene);
 
   // Draw the scene once
   drawStaticScene(scene, textures);
