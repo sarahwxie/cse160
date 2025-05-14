@@ -264,49 +264,12 @@ function playCheckersGame(scene, board) {
     { from: [5, 2], to: [4, 3] }, // black
     { from: [2, 3], to: [3, 4] }, // red
     { from: [5, 4], to: [4, 5] }, // black
-    { from: [3, 2], to: [5, 4] }, // red captures
+    { from: [3, 2], to: [5, 4] }, // red captures black at [4,3]
     { from: [5, 6], to: [4, 7] }, // black
     { from: [2, 5], to: [3, 6] }, // red
     { from: [6, 1], to: [5, 2] }, // black
     { from: [3, 4], to: [4, 3] }, // red
-    { from: [6, 3], to: [5, 4] }, // black
-    { from: [3, 6], to: [5, 4] }, // red captures again
-    { from: [6, 5], to: [4, 3] }, // black captures
-    { from: [1, 0], to: [2, 1] }, // red
-    { from: [4, 3], to: [2, 1] }, // black captures again
-    { from: [0, 3], to: [1, 2] }, // red
-    { from: [2, 1], to: [0, 3] }, // black captures (black king)
-    { from: [1, 4], to: [2, 3] }, // red
-    { from: [0, 3], to: [1, 4] }, // black captures
-    { from: [1, 6], to: [2, 7] }, // red
-    { from: [6, 7], to: [5, 6] }, // black
-    { from: [2, 7], to: [3, 6] }, // red
-    { from: [5, 6], to: [4, 5] }, // black
-    { from: [3, 6], to: [5, 4] }, // red captures again
-    { from: [7, 4], to: [6, 5] }, // black
-    { from: [5, 4], to: [7, 6] }, // red king
-    { from: [6, 5], to: [5, 4] }, // black
-    { from: [7, 6], to: [5, 4] }, // red captures (king)
-    { from: [6, 1], to: [4, 3] }, // black captures
-    { from: [5, 4], to: [3, 2] }, // red king moves
-    { from: [4, 3], to: [2, 1] }, // black
-    { from: [3, 2], to: [1, 0] }, // red
-    { from: [2, 1], to: [0, 3] }, // black king
-    { from: [1, 0], to: [0, 1] }, // red
-    { from: [0, 3], to: [2, 1] }, // black
-    { from: [0, 1], to: [1, 2] }, // red
-    { from: [2, 1], to: [3, 2] }, // black
-    { from: [1, 2], to: [2, 3] }, // red
-    { from: [3, 2], to: [4, 1] }, // black
-    { from: [2, 3], to: [3, 4] }, // red
-    { from: [4, 1], to: [5, 0] }, // black
-    { from: [3, 4], to: [4, 5] }, // red
-    { from: [5, 0], to: [6, 1] }, // black
-    { from: [4, 5], to: [5, 6] }, // red
-    { from: [6, 1], to: [7, 2] }, // black
-    { from: [5, 6], to: [6, 7] }, // red
-    { from: [7, 2], to: [6, 3] }, // black
-    { from: [6, 7], to: [7, 6] }, // red wins with final king move
+    { from: [5, 2], to: [3, 4] }, // black captures red at [4,5]
   ];
 
   // Helper function to calculate positions
@@ -367,7 +330,7 @@ function playCheckersGame(scene, board) {
       gsap.to(piece.position, {
         x: toPos.x,
         z: toPos.z,
-        duration: 2, // Increased duration for slower movement
+        duration: 1.5, // Increased duration for slower movement
         onComplete: () => {
           if (capturedPiece) {
             scene.remove(capturedPiece);
