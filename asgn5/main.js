@@ -92,6 +92,7 @@ function setupGround(scene, textures) {
 
   // Position the ground slightly above the origin
   ground.position.set(0, -1.5, 0); // Lower the ground to align its top surface with y = 0
+  ground.receiveShadow = true; // Ground receives shadows
   scene.add(ground);
 }
 
@@ -163,6 +164,15 @@ function addTrees(scene) {
       const model = gltf.scene;
       model.position.set(16, 0, 0);
       model.scale.set(20, 20, 20);
+
+      // Enable shadows for all meshes in the model
+      model.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = true; // Enable casting shadows
+          child.receiveShadow = true; // Enable receiving shadows
+        }
+      });
+
       scene.add(model);
       console.log("Custom model loaded successfully!");
     },
@@ -182,15 +192,15 @@ function addPicnicBasket(scene) {
       model.scale.set(2.2, 2.2, 2.2);
       model.rotation.y = Math.PI / 4;
 
-      // Compute the bounding box of the model
-      const box = new THREE.Box3().setFromObject(model);
-      const center = new THREE.Vector3();
-      box.getCenter(center);
+      // Enable shadows for all meshes in the model
+      model.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = true; // Enable casting shadows
+          child.receiveShadow = true; // Enable receiving shadows
+        }
+      });
 
-      model.position.sub(center);
       model.position.set(32, 0, 32);
-
-      // Add the model to the scene
       scene.add(model);
       console.log("Picnic basket loaded, scaled, and positioned successfully!");
     },
@@ -202,21 +212,6 @@ function addPicnicBasket(scene) {
       );
     }
   );
-}
-
-function createCheckerPiece(color = "red") {
-  const radius = 0.5;
-  const height = 0.2;
-  const geometry = new THREE.CylinderGeometry(radius, radius, height, 32);
-
-  const material = new THREE.MeshPhongMaterial({
-    color: color === "red" ? 0xff0000 : 0x000000, // red or black
-  });
-
-  const piece = new THREE.Mesh(geometry, material);
-  piece.castShadow = true;
-  piece.receiveShadow = true;
-  return piece;
 }
 
 function addCheckerPieces(scene, board) {
@@ -481,10 +476,16 @@ function drawSodas(scene, clumpX, clumpZ, textures) {
     // Create the soda can mesh
     const sodaCan = new THREE.Mesh(geometry, materials);
 
+    // Adjust the y position based on rotation
+    const isLyingDown = sodaPositions[i].rotationX === Math.PI / 2;
+    const adjustedY = isLyingDown
+      ? sodaHeight / 2 - sodaRadius // Adjust for lying down
+      : sodaHeight / 2; // Default for standing upright
+
     // Set position and rotation
     sodaCan.position.set(
       clumpX + sodaPositions[i].x,
-      sodaHeight / 2,
+      adjustedY,
       clumpZ + sodaPositions[i].z
     );
     sodaCan.rotation.x = sodaPositions[i].rotationX; // Rotate to lie down if needed
@@ -591,14 +592,38 @@ function drawStaticScene(scene, textures) {
 }
 
 function setupLights(scene) {
-  // Add a directional light
-  const light = new THREE.DirectionalLight(0xffffff, 1);
-  light.position.set(10, 10, 10);
+  // Add a stronger directional light
+  const light = new THREE.DirectionalLight(0xffffff, 0.5);
+  light.position.set(13, 20, 13);
+  light.castShadow = true; // Enable shadow casting
+
+  // Optional: Configure shadow properties
+  light.shadow.mapSize.width = 1024; // Shadow map resolution
+  light.shadow.mapSize.height = 1024;
+  light.shadow.camera.near = 0.5; // Near clipping plane
+  light.shadow.camera.far = 50; // Far clipping plane
+  light.shadow.camera.left = -20; // Adjust the shadow camera frustum
+  light.shadow.camera.right = 20;
+  light.shadow.camera.top = 20;
+  light.shadow.camera.bottom = -20;
   scene.add(light);
 
-  // Add an ambient light
-  const ambientLight = new THREE.AmbientLight(0x404040); // Soft light
+  // Add a softer ambient light
+  const ambientLight = new THREE.AmbientLight(0x404040, 1.5); // Reduced intensity to 0.5
   scene.add(ambientLight);
+
+  // Add a hemisphere light
+  const hemisphereLight = new THREE.HemisphereLight(0x87ceeb, 0x228b22, 0.1); // Sky color, ground color, intensity
+  scene.add(hemisphereLight);
+}
+
+function enableShadowsForAllObjects(scene) {
+  scene.traverse((object) => {
+    if (object.isMesh) {
+      object.castShadow = true; // Enable casting shadows
+      object.receiveShadow = true; // Enable receiving shadows
+    }
+  });
 }
 
 function render(renderer, scene, camera, controls, textures) {
@@ -620,6 +645,8 @@ function render(renderer, scene, camera, controls, textures) {
 function main() {
   const canvas = document.querySelector("#c");
   const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
+  renderer.shadowMap.enabled = true; // Enable shadow maps
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const camera = setupCamera(canvas);
   scene = new THREE.Scene();
@@ -641,6 +668,9 @@ function main() {
 
   // Draw the scene once
   drawStaticScene(scene, textures);
+
+  // Enable shadows for all objects
+  enableShadowsForAllObjects(scene);
 
   // Start rendering
   render(renderer, scene, camera, controls, textures);
