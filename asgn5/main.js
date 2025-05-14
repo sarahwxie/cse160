@@ -8,6 +8,9 @@ const BALL_SIZES = {
   soccerBall: 1.5,
 };
 
+let scene = null;
+let board = null;
+
 function setupOrbitControls(camera, renderer) {
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true; // Enable smooth damping (inertia)
@@ -217,6 +220,7 @@ function addCheckerPieces(scene, board) {
     const piece = new THREE.Mesh(geometry, material);
     piece.castShadow = true;
     piece.receiveShadow = true;
+    piece.userData.isCheckerPiece = true; // Mark as a checker piece
     return piece;
   }
 
@@ -235,6 +239,175 @@ function addCheckerPieces(scene, board) {
       }
     }
   }
+}
+
+function playCheckersGame(scene, board) {
+  const boardSize = 5;
+  const numSquares = 8;
+  const squareSize = boardSize / numSquares;
+
+  const boardX = board.position.x;
+  const boardZ = board.position.z;
+  const pieceY = board.position.y + 0.125; // Slightly above the board
+
+  // Define the initial positions of the pieces
+  const pieces = [];
+  scene.traverse((object) => {
+    if (object.userData.isCheckerPiece) {
+      pieces.push(object);
+    }
+  });
+
+  // Define a sequence of moves (row, col) -> (row, col)
+  const moves = [
+    { from: [2, 1], to: [3, 2] }, // red
+    { from: [5, 2], to: [4, 3] }, // black
+    { from: [2, 3], to: [3, 4] }, // red
+    { from: [5, 4], to: [4, 5] }, // black
+    { from: [3, 2], to: [5, 4] }, // red captures
+    { from: [5, 6], to: [4, 7] }, // black
+    { from: [2, 5], to: [3, 6] }, // red
+    { from: [6, 1], to: [5, 2] }, // black
+    { from: [3, 4], to: [4, 3] }, // red
+    { from: [6, 3], to: [5, 4] }, // black
+    { from: [3, 6], to: [5, 4] }, // red captures again
+    { from: [6, 5], to: [4, 3] }, // black captures
+    { from: [1, 0], to: [2, 1] }, // red
+    { from: [4, 3], to: [2, 1] }, // black captures again
+    { from: [0, 3], to: [1, 2] }, // red
+    { from: [2, 1], to: [0, 3] }, // black captures (black king)
+    { from: [1, 4], to: [2, 3] }, // red
+    { from: [0, 3], to: [1, 4] }, // black captures
+    { from: [1, 6], to: [2, 7] }, // red
+    { from: [6, 7], to: [5, 6] }, // black
+    { from: [2, 7], to: [3, 6] }, // red
+    { from: [5, 6], to: [4, 5] }, // black
+    { from: [3, 6], to: [5, 4] }, // red captures again
+    { from: [7, 4], to: [6, 5] }, // black
+    { from: [5, 4], to: [7, 6] }, // red king
+    { from: [6, 5], to: [5, 4] }, // black
+    { from: [7, 6], to: [5, 4] }, // red captures (king)
+    { from: [6, 1], to: [4, 3] }, // black captures
+    { from: [5, 4], to: [3, 2] }, // red king moves
+    { from: [4, 3], to: [2, 1] }, // black
+    { from: [3, 2], to: [1, 0] }, // red
+    { from: [2, 1], to: [0, 3] }, // black king
+    { from: [1, 0], to: [0, 1] }, // red
+    { from: [0, 3], to: [2, 1] }, // black
+    { from: [0, 1], to: [1, 2] }, // red
+    { from: [2, 1], to: [3, 2] }, // black
+    { from: [1, 2], to: [2, 3] }, // red
+    { from: [3, 2], to: [4, 1] }, // black
+    { from: [2, 3], to: [3, 4] }, // red
+    { from: [4, 1], to: [5, 0] }, // black
+    { from: [3, 4], to: [4, 5] }, // red
+    { from: [5, 0], to: [6, 1] }, // black
+    { from: [4, 5], to: [5, 6] }, // red
+    { from: [6, 1], to: [7, 2] }, // black
+    { from: [5, 6], to: [6, 7] }, // red
+    { from: [7, 2], to: [6, 3] }, // black
+    { from: [6, 7], to: [7, 6] }, // red wins with final king move
+  ];
+
+  // Helper function to calculate positions
+  function getPosition(row, col) {
+    const x = boardX - boardSize / 2 + col * squareSize + squareSize / 2;
+    const z = boardZ - boardSize / 2 + row * squareSize + squareSize / 2;
+    return { x, y: pieceY, z };
+  }
+
+  // Animate the moves using GSAP
+  function animateMoves(index = 0) {
+    if (index >= moves.length) {
+      // Reset the board after the game finishes
+      setTimeout(() => resetBoard(scene, board), 2000);
+      return;
+    }
+
+    const move = moves[index];
+    const fromPos = getPosition(move.from[0], move.from[1]);
+    const toPos = getPosition(move.to[0], move.to[1]);
+
+    // Find the piece at the starting position
+    const piece = pieces.find(
+      (p) =>
+        Math.abs(p.position.x - fromPos.x) < 0.01 &&
+        Math.abs(p.position.z - fromPos.z) < 0.01
+    );
+
+    console.log(`Move #${index + 1}:`, move);
+
+    if (piece) {
+      // Detect if it's a capture (move spans two rows/cols)
+      const rowDiff = Math.abs(move.from[0] - move.to[0]);
+      const colDiff = Math.abs(move.from[1] - move.to[1]);
+      let capturedPiece = null;
+
+      if (rowDiff === 2 && colDiff === 2) {
+        // Get midpoint of the move
+        const midRow = (move.from[0] + move.to[0]) / 2;
+        const midCol = (move.from[1] + move.to[1]) / 2;
+        const midPos = getPosition(midRow, midCol);
+
+        // Find the piece to be captured
+        capturedPiece = pieces.find(
+          (p) =>
+            Math.abs(p.position.x - midPos.x) < 0.01 &&
+            Math.abs(p.position.z - midPos.z) < 0.01
+        );
+
+        if (!capturedPiece) {
+          console.log(
+            `Move #${index + 1} is illegal: No piece to capture at midpoint.`
+          );
+        }
+      }
+
+      // Animate the move
+      gsap.to(piece.position, {
+        x: toPos.x,
+        z: toPos.z,
+        duration: 1,
+        onComplete: () => {
+          if (capturedPiece) {
+            scene.remove(capturedPiece);
+            pieces.splice(pieces.indexOf(capturedPiece), 1);
+          }
+          animateMoves(index + 1);
+        },
+      });
+    } else {
+      console.log(
+        `Move #${index + 1} is illegal: No piece found at starting position.`
+      );
+      animateMoves(index + 1); // Skip to the next move
+    }
+  }
+
+  // Start the animation
+  animateMoves();
+}
+
+function resetBoard(scene, board) {
+  if (!scene || !board) {
+    console.error("Scene or board is undefined in resetBoard.");
+    return;
+  }
+
+  // Remove all checker pieces
+  const toRemove = [];
+  scene.traverse((object) => {
+    if (object.userData.isCheckerPiece) {
+      toRemove.push(object);
+    }
+  });
+  toRemove.forEach((obj) => scene.remove(obj));
+
+  // Re-add the checker pieces
+  addCheckerPieces(scene, board);
+
+  // Replay the game
+  playCheckersGame(scene, board);
 }
 
 function drawStaticScene(scene, textures) {
@@ -285,12 +458,15 @@ function drawStaticScene(scene, textures) {
     boardSize
   );
   const boardMaterial = new THREE.MeshPhongMaterial({ map: textures.checkers });
-  const board = new THREE.Mesh(boardGeometry, boardMaterial);
+  board = new THREE.Mesh(boardGeometry, boardMaterial);
   board.position.set(boardX, boardY, boardZ);
   scene.add(board);
 
   // Add checker pieces
   addCheckerPieces(scene, board);
+
+  // Start the checkers game
+  playCheckersGame(scene, board);
 }
 
 function setupLights(scene) {
@@ -325,7 +501,7 @@ function main() {
   const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
 
   const camera = setupCamera(canvas);
-  const scene = new THREE.Scene();
+  scene = new THREE.Scene();
 
   // Load all textures
   const textures = loadTextures();
