@@ -23,6 +23,9 @@ const MOVES = [
 
 let scene = null;
 let board = null;
+let raycaster = null;
+let hoveredObject = null;
+let mouse = null;
 
 function setupOrbitControls(camera, renderer) {
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -671,6 +674,30 @@ function render(renderer, scene, camera, controls, textures) {
 
   controls.update(); // Update the controls
 
+  // Perform raycasting
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(scene.children, true); // Check all objects in the scene
+
+  if (intersects.length > 0) {
+    const firstIntersected = intersects[0].object;
+
+    // If the hovered object changes, reset the previous one
+    if (hoveredObject && hoveredObject !== firstIntersected) {
+      hoveredObject.material.emissive.set(0x000000); // Reset previous object's emissive color
+      hoveredObject = null;
+    }
+
+    // Highlight the new hovered object
+    if (firstIntersected.isMesh) {
+      hoveredObject = firstIntersected;
+      hoveredObject.material.emissive.set(0xffff00); // Set emissive color to yellow
+    }
+  } else if (hoveredObject) {
+    // Reset the previously hovered object if no object is intersected
+    hoveredObject.material.emissive.set(0x000000);
+    hoveredObject = null;
+  }
+
   // Render the scene
   renderer.render(scene, camera);
   requestAnimationFrame(() =>
@@ -686,6 +713,21 @@ function main() {
 
   const camera = setupCamera(canvas);
   scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x808080, 10, 50);
+
+  // raycasting
+  raycaster = new THREE.Raycaster();
+  mouse = new THREE.Vector2();
+  // To track the currently hovered object
+
+  // mouse event listener
+  window.addEventListener("mousemove", (event) => {
+    const canvas = renderer.domElement;
+
+    // Convert mouse position to normalized device coordinates (-1 to +1)
+    mouse.x = (event.clientX / canvas.clientWidth) * 2 - 1;
+    mouse.y = -(event.clientY / canvas.clientHeight) * 2 + 1;
+  });
 
   // Load all textures
   const textures = loadTextures();
