@@ -220,28 +220,20 @@ function addLantern(scene) {
     "./models/lantern.glb", // Path to the lantern model
     (gltf) => {
       const model = gltf.scene;
-      model.position.set(8, 1, 5); // Position the lantern
+      model.position.set(8, 0.8, 5); // Position the lantern
       model.scale.set(0.01, 0.01, 0.01); // Scale the lantern
       model.rotation.y = Math.PI / 4; // Rotate the lantern if needed
 
-      // Enable shadows for all meshes in the model
-      model.traverse((child) => {
-        if (child.isMesh) {
-          child.castShadow = true; // Enable casting shadows
-          child.receiveShadow = true; // Enable receiving shadows
-        }
-      });
-
       // Add a point light to the lantern
-      const lanternLight = new THREE.PointLight(0xffd700, 1, 10); // Warm yellow light
+      const lanternLight = new THREE.PointLight(0xffe08a, 2, 20); // Softer yellow light, stronger intensity, slower falloff
       lanternLight.position.set(8, 1.5, 5); // Slightly above the lantern
       lanternLight.castShadow = true; // Enable shadow casting
 
       // Configure shadow properties
-      lanternLight.shadow.mapSize.width = 512; // Shadow map resolution
-      lanternLight.shadow.mapSize.height = 512;
+      lanternLight.shadow.mapSize.width = 1024; // Shadow map resolution
+      lanternLight.shadow.mapSize.height = 1024;
       lanternLight.shadow.camera.near = 0.1; // Near clipping plane
-      lanternLight.shadow.camera.far = 20; // Far clipping plane
+      lanternLight.shadow.camera.far = 30; // Far clipping plane
 
       scene.add(lanternLight); // Add the light to the scene
       scene.add(model); // Add the lantern model to the scene
