@@ -82,7 +82,7 @@ function setupCamera(canvas) {
   const near = 0.1;
   const far = 100;
   const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-  camera.position.set(-20, 20, -15);
+  camera.position.set(-5, 7, -9);
   camera.lookAt(0, 0, 0);
   return camera;
 }
