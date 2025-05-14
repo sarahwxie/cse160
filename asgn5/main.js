@@ -199,9 +199,7 @@ function render(renderer, scene, camera, controls, textures) {
 
   controls.update(); // Update the controls
 
-  // Draw the scene
-  drawScene(scene, textures);
-
+  // Render the scene
   renderer.render(scene, camera);
   requestAnimationFrame(() =>
     render(renderer, scene, camera, controls, textures)
@@ -230,6 +228,9 @@ function main() {
 
   const ambientLight = new THREE.AmbientLight(0x404040); // Soft light
   scene.add(ambientLight);
+
+  // Draw the scene once
+  drawScene(scene, textures);
 
   // Start rendering
   render(renderer, scene, camera, controls, textures);
