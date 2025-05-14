@@ -160,9 +160,20 @@ function addPicnicBasket(scene) {
     "./models/picnic_basket.glb", // Path to the picnic basket model
     (gltf) => {
       const model = gltf.scene;
-      model.position.set(0, 0, 0); // Center the basket in the scene
+      model.scale.set(2.2, 2.2, 2.2);
+      model.rotation.y = Math.PI / 4;
+
+      // Compute the bounding box of the model
+      const box = new THREE.Box3().setFromObject(model);
+      const center = new THREE.Vector3();
+      box.getCenter(center);
+
+      model.position.sub(center);
+      model.position.set(32, 0, 32);
+
+      // Add the model to the scene
       scene.add(model);
-      console.log("Picnic basket loaded successfully!");
+      console.log("Picnic basket loaded, scaled, and positioned successfully!");
     },
     undefined,
     (error) => {
