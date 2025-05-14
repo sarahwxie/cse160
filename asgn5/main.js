@@ -49,6 +49,9 @@ function loadTextures() {
     football: textureLoader.load("./textures/balls/FootballColor.jpg", () =>
       console.log("Football texture loaded")
     ),
+    checkers: textureLoader.load("./textures/checkers.jpg", () =>
+      console.log("Checkers texture loaded")
+    ),
   };
 
   return textures;
@@ -57,15 +60,18 @@ function loadTextures() {
 function setupGround(scene, textures) {
   const grassTexture = textures.grass;
 
-  // Set the texture to zoom in
+  // Set the texture to repeat
   grassTexture.wrapS = THREE.RepeatWrapping;
   grassTexture.wrapT = THREE.RepeatWrapping;
   grassTexture.repeat.set(10, 10);
 
-  const groundGeometry = new THREE.PlaneGeometry(50, 50);
-  const groundMaterial = new THREE.MeshPhongMaterial({ map: grassTexture }); // Use the texture
+  // Create a rectangular prism for the ground
+  const groundGeometry = new THREE.BoxGeometry(60, 3, 60); // Width: 50, Height: 1, Depth: 50
+  const groundMaterial = new THREE.MeshPhongMaterial({ map: grassTexture }); // Use the grass texture
   const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-  ground.rotation.x = -Math.PI / 2; // Rotate to make it horizontal
+
+  // Position the ground slightly above the origin
+  ground.position.set(0, -1.5, 0); // Lower the ground to align its top surface with y = 0
   scene.add(ground);
 }
 
@@ -75,7 +81,7 @@ function setupCamera(canvas) {
   const near = 0.1;
   const far = 100;
   const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-  camera.position.set(-10, 10, -5);
+  camera.position.set(-20, 20, -15);
   camera.lookAt(0, 0, 0);
   return camera;
 }
@@ -146,15 +152,6 @@ function createBall(type, textures) {
 }
 
 function drawScene(scene, textures) {
-  // Create a cube
-  const cubeGeometry = new THREE.BoxGeometry(1, 1, 1); // Cube with dimensions 1x1x1
-  const cubeMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff00 }); // Green color
-  const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-
-  // Set the cube's position to the origin
-  cube.position.set(0, 0.5, 0); // Slightly raise it above the ground (y = 0.5)
-  scene.add(cube);
-
   // Use the preloaded picnic blanket texture
   const blanketTexture = textures.picnicBlanket;
 
@@ -181,13 +178,22 @@ function drawScene(scene, textures) {
 
   // Add a basketball to the center of the picnic blanket
   const basketball = createBall("basketball", textures);
-  basketball.position.set(7, BALL_SIZES.basketball - 0.1, 0); // Adjust Y based on size
+  basketball.position.set(9, BALL_SIZES.basketball - 0.1, 3); // Adjust Y based on size
   scene.add(basketball);
 
   // Add a soccer ball to the bottom-right corner of the picnic blanket
   const soccerBall = createBall("soccerBall", textures);
-  soccerBall.position.set(7, BALL_SIZES.soccerBall - 0.1, 5); // Adjust Y based on size
+  soccerBall.position.set(5.5, BALL_SIZES.soccerBall - 0.1, 4); // Adjust Y based on size
   scene.add(soccerBall);
+
+  // Add a checkerboard at x = 3, y = 3
+  const boardGeometry = new THREE.BoxGeometry(5, 0.2, 5);
+  const boardMaterial = new THREE.MeshPhongMaterial({ map: textures.checkers });
+  const board = new THREE.Mesh(boardGeometry, boardMaterial);
+
+  // Position the board
+  board.position.set(3, 0.125, -3); // Centered at x=3, z=3, with height adjusted to sit above the ground
+  scene.add(board);
 }
 
 function render(renderer, scene, camera, controls, textures) {
