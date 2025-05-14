@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/controls/OrbitControls.js";
+import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/loaders/GLTFLoader.js";
 
 const BALL_SIZES = {
   beachBall: 2,
@@ -66,7 +67,7 @@ function setupGround(scene, textures) {
   grassTexture.repeat.set(10, 10);
 
   // Create a rectangular prism for the ground
-  const groundGeometry = new THREE.BoxGeometry(60, 3, 60); // Width: 50, Height: 1, Depth: 50
+  const groundGeometry = new THREE.BoxGeometry(70, 3, 70); // Width: 50, Height: 1, Depth: 50
   const groundMaterial = new THREE.MeshPhongMaterial({ map: grassTexture }); // Use the grass texture
   const ground = new THREE.Mesh(groundGeometry, groundMaterial);
 
@@ -135,6 +136,44 @@ function createBall(type, textures) {
   return ball;
 }
 
+function addTrees(scene) {
+  const loader = new GLTFLoader();
+  loader.load(
+    "./models/oak_trees.glb",
+    (gltf) => {
+      const model = gltf.scene;
+      model.position.set(16, 0, 0);
+      model.scale.set(20, 20, 20);
+      scene.add(model);
+      console.log("Custom model loaded successfully!");
+    },
+    undefined,
+    (error) => {
+      console.error("An error occurred while loading the model:", error);
+    }
+  );
+}
+
+function addPicnicBasket(scene) {
+  const loader = new GLTFLoader();
+  loader.load(
+    "./models/picnic_basket.glb", // Path to the picnic basket model
+    (gltf) => {
+      const model = gltf.scene;
+      model.position.set(0, 0, 0); // Center the basket in the scene
+      scene.add(model);
+      console.log("Picnic basket loaded successfully!");
+    },
+    undefined,
+    (error) => {
+      console.error(
+        "An error occurred while loading the picnic basket:",
+        error
+      );
+    }
+  );
+}
+
 function drawScene(scene, textures) {
   // Use the preloaded picnic blanket texture
   const blanketTexture = textures.picnicBlanket;
@@ -156,18 +195,18 @@ function drawScene(scene, textures) {
 
   // Add a beach ball to the top-left corner of the picnic blanket
   const beachBall = createBall("beachBall", textures);
-  beachBall.position.set(10, BALL_SIZES.beachBall - 0.1, 10); // Adjust Y based on size
+  beachBall.position.set(-8, BALL_SIZES.beachBall - 0.1, 12); // Adjust Y based on size
   beachBall.rotation.z = THREE.MathUtils.degToRad(50); // Rotate 50 degrees about the Z-axis
   scene.add(beachBall);
 
   // Add a basketball to the center of the picnic blanket
   const basketball = createBall("basketball", textures);
-  basketball.position.set(9, BALL_SIZES.basketball - 0.1, 3); // Adjust Y based on size
+  basketball.position.set(-4.5, BALL_SIZES.basketball - 0.1, 8.8); // Adjust Y based on size
   scene.add(basketball);
 
   // Add a soccer ball to the bottom-right corner of the picnic blanket
   const soccerBall = createBall("soccerBall", textures);
-  soccerBall.position.set(5.5, BALL_SIZES.soccerBall - 0.1, 4); // Adjust Y based on size
+  soccerBall.position.set(-8.5, BALL_SIZES.soccerBall - 0.1, 8); // Adjust Y based on size
   scene.add(soccerBall);
 
   // Add a checkerboard at x = 3, y = 3
@@ -218,6 +257,10 @@ function main() {
 
   const ambientLight = new THREE.AmbientLight(0x404040); // Soft light
   scene.add(ambientLight);
+
+  // Load custom models
+  addTrees(scene);
+  addPicnicBasket(scene);
 
   // Draw the scene once
   drawScene(scene, textures);
