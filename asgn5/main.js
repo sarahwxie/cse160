@@ -97,22 +97,6 @@ function resizeRendererToDisplaySize(renderer) {
   return needResize;
 }
 
-// code pulled from sportballs library: https://github.com/jeromeetienne/threex.sportballs/tree/master
-// library was not used directly, because it's outdated & uses old version of THREE
-function createBeachBall(textures) {
-  const texture = textures.beachBall; // Use the preloaded beach ball texture
-
-  const geometry = new THREE.SphereGeometry(2, 32, 32);
-  const material = new THREE.MeshPhongMaterial({
-    map: texture,
-    bumpMap: texture,
-    bumpScale: 0.01,
-  });
-
-  const beachBall = new THREE.Mesh(geometry, material);
-  return beachBall;
-}
-
 function createBall(type, textures) {
   let texture;
   const radius = BALL_SIZES[type]; // Get the radius based on the ball type
