@@ -1,6 +1,9 @@
 import * as THREE from "three";
 import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/loaders/GLTFLoader.js";
+import { EffectComposer } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/postprocessing/RenderPass.js";
+import { OutlinePass } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/postprocessing/OutlinePass.js";
 
 const BALL_SIZES = {
   beachBall: 2,
@@ -110,14 +113,17 @@ function setupCamera(canvas) {
   return camera;
 }
 
-function resizeRendererToDisplaySize(renderer) {
+function resizeRendererToDisplaySize(renderer, composer) {
   const canvas = renderer.domElement;
   const width = canvas.clientWidth;
   const height = canvas.clientHeight;
   const needResize = canvas.width !== width || canvas.height !== height;
+
   if (needResize) {
-    renderer.setSize(width, height, false);
+    renderer.setSize(width, height, false); // Update renderer size
+    composer.setSize(width, height); // Update composer size
   }
+
   return needResize;
 }
 
@@ -632,7 +638,7 @@ function drawStaticScene(scene, textures) {
 
 function setupLights(scene) {
   // Add a stronger directional light
-  const light = new THREE.DirectionalLight(0xffffff, 0.3);
+  const light = new THREE.DirectionalLight(0xffffff, 0.4);
   light.position.set(13, 20, 13);
   light.castShadow = true; // Enable shadow casting
 
@@ -648,7 +654,7 @@ function setupLights(scene) {
   scene.add(light);
 
   // Add a softer ambient light
-  const ambientLight = new THREE.AmbientLight(0x404040, 0.5); // Reduced intensity to 0.5
+  const ambientLight = new THREE.AmbientLight(0x404040, 1.0); // Reduced intensity to 0.5
   scene.add(ambientLight);
 
   // Add a hemisphere light
@@ -665,8 +671,16 @@ function enableShadowsForAllObjects(scene) {
   });
 }
 
-function render(renderer, scene, camera, controls, textures) {
-  if (resizeRendererToDisplaySize(renderer)) {
+function render(
+  renderer,
+  scene,
+  camera,
+  controls,
+  textures,
+  composer,
+  outlinePass
+) {
+  if (resizeRendererToDisplaySize(renderer, composer)) {
     const canvas = renderer.domElement;
     camera.aspect = canvas.clientWidth / canvas.clientHeight;
     camera.updateProjectionMatrix();
@@ -683,25 +697,25 @@ function render(renderer, scene, camera, controls, textures) {
 
     // If the hovered object changes, reset the previous one
     if (hoveredObject && hoveredObject !== firstIntersected) {
-      hoveredObject.material.emissive.set(0x000000); // Reset previous object's emissive color
+      outlinePass.selectedObjects = []; // Clear the outline for the previous object
       hoveredObject = null;
     }
 
     // Highlight the new hovered object
     if (firstIntersected.isMesh) {
       hoveredObject = firstIntersected;
-      hoveredObject.material.emissive.set(0xffff00); // Set emissive color to yellow
+      outlinePass.selectedObjects = [hoveredObject]; // Add the object to the outline pass
     }
   } else if (hoveredObject) {
     // Reset the previously hovered object if no object is intersected
-    hoveredObject.material.emissive.set(0x000000);
+    outlinePass.selectedObjects = [];
     hoveredObject = null;
   }
 
-  // Render the scene
-  renderer.render(scene, camera);
+  // Render the scene with postprocessing
+  composer.render();
   requestAnimationFrame(() =>
-    render(renderer, scene, camera, controls, textures)
+    render(renderer, scene, camera, controls, textures, composer, outlinePass)
   );
 }
 
@@ -715,12 +729,11 @@ function main() {
   scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0x808080, 10, 50);
 
-  // raycasting
+  // Raycasting
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
-  // To track the currently hovered object
 
-  // mouse event listener
+  // Mouse event listener
   window.addEventListener("mousemove", (event) => {
     const canvas = renderer.domElement;
 
@@ -751,8 +764,26 @@ function main() {
   // Enable shadows for all objects
   enableShadowsForAllObjects(scene);
 
+  // Postprocessing setup
+  const composer = new EffectComposer(renderer);
+  const renderPass = new RenderPass(scene, camera);
+  composer.addPass(renderPass);
+
+  const outlinePass = new OutlinePass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    scene,
+    camera
+  );
+  outlinePass.edgeStrength = 2.5; // Strength of the outline
+  outlinePass.edgeGlow = 0.0; // Glow effect
+  outlinePass.edgeThickness = 1.0; // Thickness of the outline
+  outlinePass.pulsePeriod = 0; // No pulsing
+  outlinePass.visibleEdgeColor.set(0xffff00); // Yellow outline
+  outlinePass.hiddenEdgeColor.set(0x000000); // Hidden edges are black
+  composer.addPass(outlinePass);
+
   // Start rendering
-  render(renderer, scene, camera, controls, textures);
+  render(renderer, scene, camera, controls, textures, composer, outlinePass);
 }
 
 main();
