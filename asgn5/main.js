@@ -335,7 +335,7 @@ function playCheckersGame(scene, board) {
         Math.abs(p.position.z - fromPos.z) < 0.01
     );
 
-    console.log(`Move #${index + 1}:`, move);
+    // console.log(`Move #${index + 1}:`, move);
 
     if (piece) {
       // Detect if it's a capture (move spans two rows/cols)
@@ -367,12 +367,37 @@ function playCheckersGame(scene, board) {
       gsap.to(piece.position, {
         x: toPos.x,
         z: toPos.z,
-        duration: 1,
+        duration: 2, // Increased duration for slower movement
         onComplete: () => {
           if (capturedPiece) {
             scene.remove(capturedPiece);
             pieces.splice(pieces.indexOf(capturedPiece), 1);
           }
+
+          // Check if two pieces occupy the same space
+          const overlappingPiece = pieces.find(
+            (p) =>
+              p !== piece &&
+              Math.abs(p.position.x - piece.position.x) < 0.01 &&
+              Math.abs(p.position.z - piece.position.z) < 0.01
+          );
+
+          if (overlappingPiece) {
+            // Calculate the row and column from the position
+            const col = Math.round(
+              (piece.position.x - (boardX - boardSize / 2)) / squareSize
+            );
+            const row = Math.round(
+              (piece.position.z - (boardZ - boardSize / 2)) / squareSize
+            );
+
+            console.log(
+              `Error: After move #${
+                index + 1
+              }, two pieces occupy the same space at row ${row}, column ${col}.`
+            );
+          }
+
           animateMoves(index + 1);
         },
       });
