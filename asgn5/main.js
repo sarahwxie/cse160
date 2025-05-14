@@ -69,6 +69,9 @@ function loadTextures() {
     checkers: textureLoader.load("./textures/checkers.jpg", () =>
       console.log("Checkers texture loaded")
     ),
+    coke: textureLoader.load("./textures/coke.png", () =>
+      console.log("Coke texture loaded")
+    ), // Load the coke texture
   };
 
   return textures;
@@ -397,6 +400,127 @@ function resetBoard(scene, board) {
   playCheckersGame(scene, board);
 }
 
+function createBlock(width, height, depth, color) {
+  const geometry = new THREE.BoxGeometry(width, height, depth);
+  const material = new THREE.MeshPhongMaterial({ color });
+  const block = new THREE.Mesh(geometry, material);
+  block.castShadow = true;
+  block.receiveShadow = true;
+  return block;
+}
+
+function addPyramid(scene) {
+  const cubeSize = 1; // Smaller size for each cube
+  const cubeHeight = cubeSize; // Height of each cube (same as size for a cube)
+
+  // Offset for fine-tuning the position of the stack
+  const stackPosition = { x: 2, z: 8.5 };
+
+  // Bottom-left cube
+  const bottomLeftCube = createBlock(cubeSize, cubeHeight, cubeSize, 0xfaa0a0);
+  bottomLeftCube.position.set(
+    stackPosition.x - cubeSize / 2,
+    cubeHeight / 2,
+    stackPosition.z
+  );
+  bottomLeftCube.rotation.y = Math.PI / 3; // Rotate 45 degrees about the Y-axis
+  scene.add(bottomLeftCube);
+
+  // Bottom-right cube
+  const bottomRightCube = createBlock(cubeSize, cubeHeight, cubeSize, 0xc1e1c1);
+  bottomRightCube.position.set(
+    stackPosition.x + cubeSize / 2 + 0.4,
+    cubeHeight / 2,
+    stackPosition.z
+  );
+  bottomRightCube.rotation.y = Math.PI / 5; // Rotate 45 degrees about the Y-axis
+  scene.add(bottomRightCube);
+
+  // Top cube
+  const topCube = createBlock(cubeSize, cubeHeight, cubeSize, 0xa7c7e7);
+  topCube.position.set(
+    stackPosition.x,
+    cubeHeight + cubeHeight / 2,
+    stackPosition.z
+  );
+  topCube.rotation.y = Math.PI / 6; // Rotate 45 degrees about the Y-axis
+  scene.add(topCube);
+}
+
+function drawSodas(scene, clumpX, clumpZ, textures) {
+  const sodaRadius = 0.5; // Radius of the soda can
+  const sodaHeight = 1.5; // Height of the soda can
+  const sodaColors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff]; // Colors for the soda cans
+
+  // Define positions and rotations for the soda cans
+  const sodaPositions = [
+    { x: -5, z: 5, rotationX: 0, rotationZ: 0 }, // Standing upright
+    { x: -4, z: 6, rotationX: Math.PI / 2, rotationZ: -Math.PI / 4 }, // Lying down, rotated 45° about Y
+    { x: -6, z: 4.5, rotationX: 0, rotationZ: 0 }, // Standing upright
+    { x: -5.5, z: 6.5, rotationX: Math.PI / 2, rotationZ: Math.PI / 3 }, // Lying down, rotated 60° about Y
+    { x: -4.5, z: 4, rotationX: 0, rotationZ: 0 }, // Standing upright
+  ];
+
+  for (let i = 0; i < sodaPositions.length; i++) {
+    const geometry = new THREE.CylinderGeometry(
+      sodaRadius,
+      sodaRadius,
+      sodaHeight,
+      32
+    );
+
+    // Create materials for the sides and the top/bottom
+    const topBottomMaterial = new THREE.MeshPhongMaterial({
+      map: textures.coke,
+    });
+    const sideMaterial = new THREE.MeshPhongMaterial({ color: 0xc0c0c0 });
+
+    // Combine the materials into an array
+    const materials = [topBottomMaterial, sideMaterial, topBottomMaterial];
+
+    // Create the soda can mesh
+    const sodaCan = new THREE.Mesh(geometry, materials);
+
+    // Set position and rotation
+    sodaCan.position.set(
+      clumpX + sodaPositions[i].x,
+      sodaHeight / 2,
+      clumpZ + sodaPositions[i].z
+    );
+    sodaCan.rotation.x = sodaPositions[i].rotationX; // Rotate to lie down if needed
+    sodaCan.rotation.z = sodaPositions[i].rotationZ; // Rotate about Y-axis if lying down
+
+    // Add the soda can to the scene
+    scene.add(sodaCan);
+  }
+}
+
+function drawBooks(scene, x, y, z) {
+  const bookWidth = 3; // Width of the book
+  const bookHeight = 0.5; // Height of the book
+  const bookDepth = 2; // Depth of the book
+
+  // Colors for the books
+  const bookColors = [0xacb1d9, 0xdbc38c]; // Red and blue
+
+  // Create the bottom book
+  const bottomBook = createBlock(
+    bookWidth,
+    bookHeight,
+    bookDepth,
+    bookColors[0]
+  );
+  bottomBook.position.set(x, y + bookHeight / 2, z); // Position the bottom book
+  bottomBook.rotation.y = Math.PI / 12; // Rotate the bottom book slightly about the Y-axis
+  scene.add(bottomBook);
+
+  // Create the top book
+  const topBook = createBlock(bookWidth, bookHeight, bookDepth, bookColors[1]);
+  topBook.position.set(x, y + bookHeight + bookHeight / 2, z); // Position the top book above the bottom book
+  topBook.rotation.y = -Math.PI / 18; // Rotate the top book slightly about the Y-axis
+  scene.add(topBook);
+}
+
 function drawStaticScene(scene, textures) {
   // Use the preloaded picnic blanket texture
   const blanketTexture = textures.picnicBlanket;
@@ -431,6 +555,16 @@ function drawStaticScene(scene, textures) {
   const soccerBall = createBall("soccerBall", textures);
   soccerBall.position.set(-8.5, BALL_SIZES.soccerBall - 0.1, 8); // Adjust Y based on size
   scene.add(soccerBall);
+
+  // draw the block pyramid
+  addPyramid(scene);
+
+  // draw sodas
+  drawSodas(scene, 14, -5, textures);
+  drawSodas(scene, -1, -10, textures);
+
+  // draw books
+  drawBooks(scene, -7, 0, -1);
 
   // -------- Create checkerboard --------
   const boardSize = 5;
