@@ -31,6 +31,31 @@ let board = null;
 let raycaster = null;
 let hoveredObject = null;
 let mouse = null;
+let billboard = null;
+let yellowBook = null;
+
+function createBillboard(scene) {
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+  canvas.width = 256;
+  canvas.height = 128;
+
+  // Draw text on the canvas
+  context.fillStyle = "yellow";
+  context.font = "bold 30px monospace";
+  context.textAlign = "center";
+  context.fillText("Key Found!", canvas.width / 2, canvas.height / 2);
+
+  // Create a texture from the canvas
+  const texture = new THREE.CanvasTexture(canvas);
+  const material = new THREE.SpriteMaterial({ map: texture });
+  billboard = new THREE.Sprite(material);
+
+  // Position the billboard above the yellow book
+  billboard.scale.set(2, 1, 1); // Adjust size
+  billboard.visible = false; // Initially hidden
+  scene.add(billboard);
+}
 
 function setupOrbitControls(camera, renderer) {
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -549,7 +574,7 @@ function drawBooks(scene, x, y, z) {
   const bookDepth = 2; // Depth of the book
 
   // Colors for the books
-  const bookColors = [0xacb1d9, 0xdbc38c]; // Red and blue
+  const bookColors = [0xacb1d9, 0xdbc38c]; // Blue and yellow
 
   // Create the bottom book
   const bottomBook = createBlock(
@@ -562,11 +587,11 @@ function drawBooks(scene, x, y, z) {
   bottomBook.rotation.y = Math.PI / 12; // Rotate the bottom book slightly about the Y-axis
   scene.add(bottomBook);
 
-  // Create the top book
-  const topBook = createBlock(bookWidth, bookHeight, bookDepth, bookColors[1]);
-  topBook.position.set(x, y + bookHeight + bookHeight / 2, z); // Position the top book above the bottom book
-  topBook.rotation.y = -Math.PI / 18; // Rotate the top book slightly about the Y-axis
-  scene.add(topBook);
+  // Create the top (yellow) book
+  yellowBook = createBlock(bookWidth, bookHeight, bookDepth, bookColors[1]);
+  yellowBook.position.set(x, y + bookHeight + bookHeight / 2, z); // Position the top book above the bottom book
+  yellowBook.rotation.y = -Math.PI / 18; // Rotate the top book slightly about the Y-axis
+  scene.add(yellowBook);
 }
 
 function drawStaticScene(scene, textures) {
@@ -701,17 +726,28 @@ function render(
     if (hoveredObject && hoveredObject !== firstIntersected) {
       outlinePass.selectedObjects = []; // Clear the outline for the previous object
       hoveredObject = null;
+      if (billboard) billboard.visible = false; // Hide the billboard
     }
 
     // Highlight the new hovered object
     if (firstIntersected.isMesh) {
       hoveredObject = firstIntersected;
       outlinePass.selectedObjects = [hoveredObject]; // Add the object to the outline pass
+      // Show the billboard if the yellow book is hovered
+      if (hoveredObject === yellowBook && billboard) {
+        billboard.position.set(
+          yellowBook.position.x,
+          yellowBook.position.y + 1.5,
+          yellowBook.position.z
+        );
+        billboard.visible = true;
+      }
     }
   } else if (hoveredObject) {
     // Reset the previously hovered object if no object is intersected
     outlinePass.selectedObjects = [];
     hoveredObject = null;
+    if (billboard) billboard.visible = false; // Hide the billboard
   }
 
   // Render the scene with postprocessing
@@ -762,6 +798,9 @@ function main() {
 
   // Draw the scene once
   drawStaticScene(scene, textures);
+
+  // Create the billboard
+  createBillboard(scene);
 
   // Enable shadows for all objects
   enableShadowsForAllObjects(scene);
