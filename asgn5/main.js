@@ -8,6 +8,19 @@ const BALL_SIZES = {
   soccerBall: 1.5,
 };
 
+const MOVES = [
+  { from: [2, 1], to: [3, 2] }, // red
+  { from: [5, 2], to: [4, 3] }, // black
+  { from: [2, 3], to: [3, 4] }, // red
+  { from: [5, 4], to: [4, 5] }, // black
+  { from: [3, 2], to: [5, 4] }, // red captures black at [4,3]
+  { from: [5, 6], to: [4, 7] }, // black
+  { from: [2, 5], to: [3, 6] }, // red
+  { from: [6, 1], to: [5, 2] }, // black
+  { from: [3, 4], to: [4, 3] }, // red
+  { from: [5, 2], to: [3, 4] }, // black captures red at [4,5]
+];
+
 let scene = null;
 let board = null;
 
@@ -258,20 +271,6 @@ function playCheckersGame(scene, board) {
     }
   });
 
-  // Define a sequence of moves (row, col) -> (row, col)
-  const moves = [
-    { from: [2, 1], to: [3, 2] }, // red
-    { from: [5, 2], to: [4, 3] }, // black
-    { from: [2, 3], to: [3, 4] }, // red
-    { from: [5, 4], to: [4, 5] }, // black
-    { from: [3, 2], to: [5, 4] }, // red captures black at [4,3]
-    { from: [5, 6], to: [4, 7] }, // black
-    { from: [2, 5], to: [3, 6] }, // red
-    { from: [6, 1], to: [5, 2] }, // black
-    { from: [3, 4], to: [4, 3] }, // red
-    { from: [5, 2], to: [3, 4] }, // black captures red at [4,5]
-  ];
-
   // Helper function to calculate positions
   function getPosition(row, col) {
     const x = boardX - boardSize / 2 + col * squareSize + squareSize / 2;
@@ -281,13 +280,13 @@ function playCheckersGame(scene, board) {
 
   // Animate the moves using GSAP
   function animateMoves(index = 0) {
-    if (index >= moves.length) {
+    if (index >= MOVES.length) {
       // Reset the board after the game finishes
       setTimeout(() => resetBoard(scene, board), 2000);
       return;
     }
 
-    const move = moves[index];
+    const move = MOVES[index];
     const fromPos = getPosition(move.from[0], move.from[1]);
     const toPos = getPosition(move.to[0], move.to[1]);
 
