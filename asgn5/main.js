@@ -185,7 +185,59 @@ function addPicnicBasket(scene) {
   );
 }
 
-function drawScene(scene, textures) {
+function createCheckerPiece(color = "red") {
+  const radius = 0.5;
+  const height = 0.2;
+  const geometry = new THREE.CylinderGeometry(radius, radius, height, 32);
+
+  const material = new THREE.MeshPhongMaterial({
+    color: color === "red" ? 0xff0000 : 0x000000, // red or black
+  });
+
+  const piece = new THREE.Mesh(geometry, material);
+  piece.castShadow = true;
+  piece.receiveShadow = true;
+  return piece;
+}
+
+function addCheckerPieces(scene, board) {
+  const boardSize = 5;
+  const numSquares = 8;
+  const squareSize = boardSize / numSquares;
+
+  const boardX = board.position.x;
+  const boardZ = board.position.z;
+  const pieceY = board.position.y + 0.125; // Slightly above the board
+
+  function createCheckerPiece(color) {
+    const geometry = new THREE.CylinderGeometry(0.25, 0.25, 0.2, 32);
+    const material = new THREE.MeshPhongMaterial({
+      color: color === "red" ? 0xff0000 : 0x000000,
+    });
+    const piece = new THREE.Mesh(geometry, material);
+    piece.castShadow = true;
+    piece.receiveShadow = true;
+    return piece;
+  }
+
+  for (let row = 0; row < numSquares; row++) {
+    for (let col = 0; col < numSquares; col++) {
+      if ((row + col) % 2 === 1 && (row < 3 || row > 4)) {
+        const color = row < 3 ? "red" : "black";
+        const piece = createCheckerPiece(color);
+
+        // Calculate x and z positions based on board center
+        const x = boardX - boardSize / 2 + col * squareSize + squareSize / 2;
+        const z = boardZ - boardSize / 2 + row * squareSize + squareSize / 2;
+
+        piece.position.set(x, pieceY, z);
+        scene.add(piece);
+      }
+    }
+  }
+}
+
+function drawStaticScene(scene, textures) {
   // Use the preloaded picnic blanket texture
   const blanketTexture = textures.picnicBlanket;
 
@@ -220,14 +272,36 @@ function drawScene(scene, textures) {
   soccerBall.position.set(-8.5, BALL_SIZES.soccerBall - 0.1, 8); // Adjust Y based on size
   scene.add(soccerBall);
 
-  // Add a checkerboard at x = 3, y = 3
-  const boardGeometry = new THREE.BoxGeometry(5, 0.2, 5);
+  // -------- Create checkerboard --------
+  const boardSize = 5;
+  const boardHeight = 0.2;
+  const boardX = 3;
+  const boardY = 0.125;
+  const boardZ = -3;
+
+  const boardGeometry = new THREE.BoxGeometry(
+    boardSize,
+    boardHeight,
+    boardSize
+  );
   const boardMaterial = new THREE.MeshPhongMaterial({ map: textures.checkers });
   const board = new THREE.Mesh(boardGeometry, boardMaterial);
-
-  // Position the board
-  board.position.set(3, 0.125, -3); // Centered at x=3, z=3, with height adjusted to sit above the ground
+  board.position.set(boardX, boardY, boardZ);
   scene.add(board);
+
+  // Add checker pieces
+  addCheckerPieces(scene, board);
+}
+
+function setupLights(scene) {
+  // Add a directional light
+  const light = new THREE.DirectionalLight(0xffffff, 1);
+  light.position.set(10, 10, 10);
+  scene.add(light);
+
+  // Add an ambient light
+  const ambientLight = new THREE.AmbientLight(0x404040); // Soft light
+  scene.add(ambientLight);
 }
 
 function render(renderer, scene, camera, controls, textures) {
@@ -261,20 +335,15 @@ function main() {
   setupGround(scene, textures);
   const controls = setupOrbitControls(camera, renderer);
 
-  // Add a light source
-  const light = new THREE.DirectionalLight(0xffffff, 1);
-  light.position.set(10, 10, 10);
-  scene.add(light);
-
-  const ambientLight = new THREE.AmbientLight(0x404040); // Soft light
-  scene.add(ambientLight);
+  // Setup lights
+  setupLights(scene);
 
   // Load custom models
   addTrees(scene);
   addPicnicBasket(scene);
 
   // Draw the scene once
-  drawScene(scene, textures);
+  drawStaticScene(scene, textures);
 
   // Start rendering
   render(renderer, scene, camera, controls, textures);
